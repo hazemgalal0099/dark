@@ -749,7 +749,32 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                 // ── Platform Selector ──────────────
                                 FadeTransition(
                                   opacity: _platformFade,
-                                  child: _buildPlatformSelector(),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      // Label above platforms
+                                      const Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              "يجب اختيار المنصة",
+                                              style: TextStyle(
+                                                color: _kPurple,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              textAlign: TextAlign.right,
+                                            ),
+                                            SizedBox(width: 6),
+                                            Icon(Icons.info_outline, color: _kPurple, size: 13),
+                                          ],
+                                        ),
+                                      ),
+                                      _buildPlatformSelector(),
+                                    ],
+                                  ),
                                 ),
 
                                 const SizedBox(height: 28),
