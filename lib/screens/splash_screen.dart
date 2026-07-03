@@ -26,13 +26,13 @@ class _TLine {
 }
 
 const _kLines = [
-  _TLine('JOEX APPLE', _LineType.title),
-  _TLine('DECRYPTION SYSTEM', _LineType.subtitle),
-  _TLine('> CONNECTING TO SECURE NODE...', _LineType.system),
-  _TLine('> ESTABLISHING ENCRYPTED TUNNEL...', _LineType.system),
-  _TLine('> AUTHENTICATING OPERATOR...', _LineType.system),
-  _TLine('> BYPASS PROTOCOL ACTIVE...', _LineType.system),
-  _TLine('> ACCESS GRANTED', _LineType.granted),
+  _TLine('جوكس أبل', _LineType.title),
+  _TLine('نظام فك التشفير', _LineType.subtitle),
+  _TLine('> جاري الاتصال بنقطة آمنة...', _LineType.system),
+  _TLine('> جاري إنشاء نفق مشفر...', _LineType.system),
+  _TLine('> جاري التحقق من هوية المشغل...', _LineType.system),
+  _TLine('> بروتوكول التخطي نشط...', _LineType.system),
+  _TLine('> تم السماح بالدخول', _LineType.granted),
 ];
 
 // ─────────────────────────────────────────────
@@ -209,35 +209,38 @@ class _SplashScreenState extends State<SplashScreen>
 
           // ── Main content ──────────────────────
           SafeArea(
-            child: Column(
-              children: [
-                // Logo section
-                Expanded(
-                  flex: 30,
-                  child: AnimatedBuilder(
-                    animation: _logoCtrl,
-                    builder: (context, _) => Opacity(
-                      opacity: _logoCtrl.value,
-                      child: Center(child: _buildLogo()),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                children: [
+                  // Logo section
+                  Expanded(
+                    flex: 30,
+                    child: AnimatedBuilder(
+                      animation: _logoCtrl,
+                      builder: (context, _) => Opacity(
+                        opacity: _logoCtrl.value,
+                        child: Center(child: _buildLogo()),
+                      ),
                     ),
                   ),
-                ),
 
-                // Terminal section
-                Expanded(
-                  flex: 50,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: _buildTerminal(),
+                  // Terminal section
+                  Expanded(
+                    flex: 50,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: _buildTerminal(),
+                    ),
                   ),
-                ),
 
-                // Server cards section
-                Expanded(
-                  flex: 20,
-                  child: _buildCards(),
-                ),
-              ],
+                  // Server cards section
+                  Expanded(
+                    flex: 20,
+                    child: _buildCards(),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -299,9 +302,9 @@ class _SplashScreenState extends State<SplashScreen>
     if (!_showCards) return const SizedBox.shrink();
 
     const cards = [
-      {'name': 'US-NODE', 'uptime': '99.4%'},
-      {'name': 'EU-NODE', 'uptime': '99.7%'},
-      {'name': 'ME-NODE', 'uptime': '99.8%'},
+      {'name': 'خادم أمريكا', 'uptime': '99.4%'},
+      {'name': 'خادم أوروبا', 'uptime': '99.7%'},
+      {'name': 'خادم الشرق الأوسط', 'uptime': '99.8%'},
     ];
 
     return AnimatedBuilder(
