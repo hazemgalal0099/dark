@@ -27,7 +27,7 @@ class _TLine {
 }
 
 const _kLines = [
-  _TLine('جوكس أبل', _LineType.title),
+  _TLine('JoeX Apple', _LineType.title),
   _TLine('نظام فك التشفير', _LineType.subtitle),
   _TLine('> جاري الاتصال بنقطة آمنة...', _LineType.system),
   _TLine('> جاري إنشاء نفق مشفر...', _LineType.system),
