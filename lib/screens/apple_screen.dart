@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../widgets/joex_logo.dart';
 
 class JoeXApplePage extends StatefulWidget {
   const JoeXApplePage({super.key});
@@ -570,11 +569,10 @@ class _JoeXApplePageState extends State<JoeXApplePage>
                                 width: 1.5,
                               ),
                             ),
-                            child: const ClipOval(
-                              child: JoeXLogo(
-                                showText: false,
-                                drawBackground: false,
-                                size: 36,
+                            child: ClipOval(
+                              child: Image.asset(
+                                "assets/app_logo.png",
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
