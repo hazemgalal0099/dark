@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/joex_logo.dart';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -597,10 +598,11 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                       border: Border.all(
                                           color: _kPurple, width: 1.5),
                                     ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        "assets/app_logo.png",
-                                        fit: BoxFit.cover,
+                                    child: const ClipOval(
+                                      child: JoeXLogo(
+                                        showText: false,
+                                        drawBackground: false,
+                                        size: 56,
                                       ),
                                     ),
                                   ),

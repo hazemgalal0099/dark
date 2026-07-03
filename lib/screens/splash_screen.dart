@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../widgets/joex_logo.dart';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -259,10 +260,10 @@ class _SplashScreenState extends State<SplashScreen>
           // Diamond clipped logo
           ClipPath(
             clipper: _DiamondClipper(),
-            child: SizedBox(
-              width: 88,
-              height: 88,
-              child: Image.asset('assets/app_logo.png', fit: BoxFit.cover),
+            child: const JoeXLogo(
+              showText: false,
+              drawBackground: false,
+              size: 88,
             ),
           ),
           // Scope crosshair lines
