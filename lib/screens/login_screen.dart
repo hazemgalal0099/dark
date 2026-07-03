@@ -911,55 +911,56 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
           onTap: () => setState(() => _selectedPlatform = idx),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 12),
-            height: 62,
+            margin: const EdgeInsets.only(bottom: 14),
+            height: 75, // Sleek uniform height for 3:1 aspect ratio images
             decoration: BoxDecoration(
-              color: isSelected
-                  ? _kLineColor.withValues(alpha: 0.4)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? _kPurple : _kLineColor,
-                width: isSelected ? 1.5 : 1.0,
+                color: isSelected ? _kPurple : const Color(0xFF1E1E28),
+                width: isSelected ? 2.5 : 1.0,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: _kPurple.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  : [],
               image: DecorationImage(
                 image: AssetImage(p["image"] as String),
-                fit: BoxFit.contain,
-                alignment: Alignment.center,
-                opacity: isSelected ? 0.35 : 0.12,
+                fit: BoxFit.cover, // Fills completely because image size is padded to exactly 3:1
               ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  // Left: selection ring
-                  AnimatedContainer(
+            child: Stack(
+              children: [
+                // Selection indicator badge (top-left)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 10,
-                    height: 10,
+                    width: 18,
+                    height: 18,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected ? _kPurple : Colors.transparent,
+                      color: isSelected ? _kPurple : Colors.black.withValues(alpha: 0.4),
                       border: Border.all(
-                        color: isSelected ? _kPurple : _kSubText,
+                        color: isSelected ? _kPurple : Colors.white.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
                     ),
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 11,
+                          )
+                        : null,
                   ),
-                  const Spacer(),
-                  // Platform name in Arabic
-                  Text(
-                    p["name"] as String,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF8E8E93),
-                      fontSize: 15,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
