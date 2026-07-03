@@ -533,12 +533,12 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                     children: [
                                       // AUTHORIZED ACCESS ONLY
                                       const Text(
-                                        "AUTHORIZED ACCESS ONLY",
+                                        "منطقة دخول مصرح بها فقط",
                                         style: TextStyle(
-                                          fontFamily: 'monospace',
+                                          fontFamily: 'sans-serif',
                                           fontSize: 9,
                                           color: Color(0xFF3D2F6E),
-                                          letterSpacing: 3,
+                                          letterSpacing: 1.5,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -567,12 +567,12 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                       const SizedBox(height: 6),
                                       // DECRYPTION PORTAL
                                       const Text(
-                                        "DECRYPTION PORTAL",
+                                        "بوابة فك التشفير الرقمي",
                                         style: TextStyle(
-                                          fontFamily: 'monospace',
+                                          fontFamily: 'sans-serif',
                                           fontSize: 10,
                                           color: _kSubText,
-                                          letterSpacing: 2,
+                                          letterSpacing: 1,
                                         ),
                                       ),
                                     ],
@@ -684,12 +684,13 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
 
                                 // ── OPERATOR CREDENTIALS label ─────
                                 const Text(
-                                  "OPERATOR CREDENTIALS",
+                                  "بيانات اعتماد المشغل",
                                   style: TextStyle(
-                                    fontFamily: 'monospace',
-                                    fontSize: 9,
+                                    fontFamily: 'sans-serif',
+                                    fontSize: 10,
                                     color: _kSubText,
-                                    letterSpacing: 2,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -698,7 +699,7 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                 FadeTransition(
                                   opacity: _field1Fade,
                                   child: _buildUnderlineField(
-                                    label: "[ ID ]",
+                                    label: "[ معرف الحساب - ID ]",
                                     controller: _idController,
                                     focusNode: _idFocusNode,
                                     hintText: "أدخل معرف الحساب",
@@ -720,7 +721,7 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                                   child: ShakeWidget(
                                     controller: _shakeController,
                                     child: _buildUnderlineField(
-                                      label: "[ PROMO ]",
+                                      label: "[ كود التفعيل - PROMO ]",
                                       controller: _promoController,
                                       focusNode: _promoFocusNode,
                                       hintText: "أدخل كود التفعيل",
@@ -896,9 +897,9 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
   // ── Platform Selector (column of rows) ────────
   Widget _buildPlatformSelector() {
     final platforms = [
-      {"index": 0, "name": "Melbet", "uptime": "99.8%"},
-      {"index": 2, "name": "1Xbet", "uptime": "98.5%"},
-      {"index": 1, "name": "Linebet", "uptime": "97.2%"},
+      {"index": 0, "name": "ميلبيت", "image": "assets/platform_melbet.png"},
+      {"index": 2, "name": "1إكس بت", "image": "assets/platform_1xbet.png"},
+      {"index": 1, "name": "لاين بت", "image": "assets/platform_linebet.png"},
     ];
 
     return Column(
@@ -910,63 +911,55 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
           onTap: () => setState(() => _selectedPlatform = idx),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 10),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            margin: const EdgeInsets.only(bottom: 12),
+            height: 62,
             decoration: BoxDecoration(
               color: isSelected
-                  ? _kLineColor
+                  ? _kLineColor.withValues(alpha: 0.4)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected
-                    ? _kPurpleMid
-                    : _kLineColor,
-                width: 1.0,
+                color: isSelected ? _kPurple : _kLineColor,
+                width: isSelected ? 1.5 : 1.0,
+              ),
+              image: DecorationImage(
+                image: AssetImage(p["image"] as String),
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
+                opacity: isSelected ? 0.35 : 0.12,
               ),
             ),
-            child: Row(
-              children: [
-                // Left: selection ring
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? _kPurple : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected ? _kPurple : _kSubText,
-                      width: 1.5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // Left: selection ring
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? _kPurple : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected ? _kPurple : _kSubText,
+                        width: 1.5,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                // Platform name
-                Expanded(
-                  child: Text(
+                  const Spacer(),
+                  // Platform name in Arabic
+                  Text(
                     p["name"] as String,
                     style: TextStyle(
-                      color:
-                          isSelected ? Colors.white : const Color(0xFF8E8E93),
-                      fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w400,
+                      color: isSelected ? Colors.white : const Color(0xFF8E8E93),
+                      fontSize: 15,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     textAlign: TextAlign.right,
                   ),
-                ),
-                // Uptime
-                Text(
-                  p["uptime"] as String,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 10,
-                    color: _kSubText,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -985,7 +978,6 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
           colors: [_kPurpleDark, _kPurple],
           begin: Alignment(0.0, -1.0),
           end: Alignment(1.0, 1.0),
-          // Simulating 135deg
         ),
         boxShadow: [
           BoxShadow(
@@ -1051,9 +1043,9 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        "[DECRYPT]",
+                        "[ فك التشفير ]",
                         style: TextStyle(
-                          fontFamily: 'monospace',
+                          fontFamily: 'sans-serif',
                           fontSize: 9,
                           color: Colors.white.withValues(alpha: 0.50),
                         ),
@@ -1233,8 +1225,8 @@ class _SubscriptionDialogContentState
   Timer? _youtubeTimer;
 
   final List<String> _handshakeLogs = [
-    "[SYS] VIP Decryption Engine standby...",
-    "[SYS] Awaiting token activation verification...",
+    "[نظام] محرك فك تشفير VIP في وضع الاستعداد...",
+    "[نظام] في انتظار التحقق من تفعيل الرمز الموحد...",
   ];
 
   final ScrollController _scrollController = ScrollController();
@@ -1263,7 +1255,7 @@ class _SubscriptionDialogContentState
       _isTelegramLoading = true;
       _telegramProgress = 0.0;
     });
-    _addLog("[SYS] Validating Telegram channel: t.me/elostora_vip...");
+    _addLog("[نظام] التحقق من قناة التليجرام: t.me/elostora_vip...");
     int step = 0;
     _telegramTimer =
         Timer.periodic(const Duration(milliseconds: 300), (timer) {
@@ -1274,13 +1266,13 @@ class _SubscriptionDialogContentState
           _telegramSubscribed = true;
           _isTelegramLoading = false;
           _telegramTimer?.cancel();
-          _addLog("[OK] Telegram bypass token validated successfully.");
+          _addLog("[ناجح] تم التحقق من رمز تخطي التليجرام بنجاح.");
         } else {
           step++;
           if (step == 1) {
-            _addLog("[SECURE] Reading user registration signature...");
+            _addLog("[أمان] قراءة توقيع تسجيل المستخدم الفريد...");
           } else if (step == 2) {
-            _addLog("[PING] Syncing credentials packet to auth DB...");
+            _addLog("[اتصال] مزامنة حزمة البيانات مع خادم المصادقة...");
           }
         }
       });
@@ -1297,7 +1289,7 @@ class _SubscriptionDialogContentState
       _isTelegramMtcLoading = true;
       _telegramMtcProgress = 0.0;
     });
-    _addLog("[SYS] Validating Telegram channel: t.me/drk_mtc...");
+    _addLog("[نظام] التحقق من قناة التليجرام: t.me/drk_mtc...");
     int step = 0;
     _telegramMtcTimer =
         Timer.periodic(const Duration(milliseconds: 300), (timer) {
@@ -1308,13 +1300,13 @@ class _SubscriptionDialogContentState
           _telegramMtcSubscribed = true;
           _isTelegramMtcLoading = false;
           _telegramMtcTimer?.cancel();
-          _addLog("[OK] Telegram @drk_mtc bypass token validated successfully.");
+          _addLog("[ناجح] تم التحقق من رمز تخطي التليجرام @drk_mtc بنجاح.");
         } else {
           step++;
           if (step == 1) {
-            _addLog("[SECURE] Reading user registration signature...");
+            _addLog("[أمان] قراءة توقيع تسجيل المستخدم الفريد...");
           } else if (step == 2) {
-            _addLog("[PING] Syncing credentials packet to auth DB...");
+            _addLog("[اتصال] مزامنة حزمة البيانات مع خادم المصادقة...");
           }
         }
       });
@@ -1331,7 +1323,7 @@ class _SubscriptionDialogContentState
       _isYoutubeLoading = true;
       _youtubeProgress = 0.0;
     });
-    _addLog("[SYS] Validating YouTube subscriber channel...");
+    _addLog("[نظام] التحقق من قناة المشتركين على يوتيوب...");
     int step = 0;
     _youtubeTimer =
         Timer.periodic(const Duration(milliseconds: 300), (timer) {
@@ -1342,13 +1334,13 @@ class _SubscriptionDialogContentState
           _youtubeSubscribed = true;
           _isYoutubeLoading = false;
           _youtubeTimer?.cancel();
-          _addLog("[OK] YouTube verification token validated successfully.");
+          _addLog("[ناجح] تم التحقق من رمز يوتيوب بنجاح.");
         } else {
           step++;
           if (step == 1) {
-            _addLog("[SECURE] Scanning YouTube subscriber logs...");
+            _addLog("[أمان] فحص سجلات المشتركين على يوتيوب...");
           } else if (step == 2) {
-            _addLog("[PING] Matching keys to master server core...");
+            _addLog("[اتصال] مطابقة المفاتيح مع الخادم الرئيسي للتحقق...");
           }
         }
       });
