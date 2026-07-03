@@ -963,7 +963,7 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
                         : [],
                     image: DecorationImage(
                       image: AssetImage(p["image"] as String),
-                      fit: BoxFit.contain, // Shows image completely inside the card
+                      fit: BoxFit.fill, // Fill entire container X and Y — no empty space
                     ),
                   ),
                 ),
