@@ -894,7 +894,7 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
     );
   }
 
-  // ── Platform Selector (column of rows) ────────
+  // ── Platform Selector (horizontal row) ────────
   Widget _buildPlatformSelector() {
     final platforms = [
       {"index": 0, "name": "ميلبيت", "image": "assets/platform_melbet.png"},
@@ -902,69 +902,51 @@ class _JoeXLoginPageState extends State<JoeXLoginPage>
       {"index": 1, "name": "لاين بت", "image": "assets/platform_linebet.png"},
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: platforms.map((p) {
+    return Row(
+      children: List.generate(platforms.length, (index) {
+        final p = platforms[index];
         final idx = p["index"] as int;
         final isSelected = _selectedPlatform == idx;
-        return GestureDetector(
-          onTap: () => setState(() => _selectedPlatform = idx),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 14),
-            height: 75, // Sleek uniform height for 3:1 aspect ratio images
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isSelected ? _kPurple : const Color(0xFF1E1E28),
-                width: isSelected ? 2.5 : 1.0,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: _kPurple.withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
-                  : [],
-              image: DecorationImage(
-                image: AssetImage(p["image"] as String),
-                fit: BoxFit.cover, // Fills completely because image size is padded to exactly 3:1
-              ),
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: index == 0 ? 0 : 4,
+              right: index == platforms.length - 1 ? 0 : 4,
             ),
-            child: Stack(
-              children: [
-                // Selection indicator badge (top-left)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isSelected ? _kPurple : Colors.black.withValues(alpha: 0.4),
-                      border: Border.all(
-                        color: isSelected ? _kPurple : Colors.white.withValues(alpha: 0.5),
-                        width: 1.5,
-                      ),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedPlatform = idx),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isSelected ? 1.0 : 0.45,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  height: 40, // Small and sleek height as requested
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? _kPurple : const Color(0xFF1E1E28),
+                      width: isSelected ? 2.0 : 1.0,
                     ),
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 11,
-                          )
-                        : null,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: _kPurple.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : [],
+                    image: DecorationImage(
+                      image: AssetImage(p["image"] as String),
+                      fit: BoxFit.contain, // Shows image completely inside the card
+                    ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
-      }).toList(),
+      }),
     );
   }
 
