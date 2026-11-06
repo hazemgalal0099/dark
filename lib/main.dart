@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/apple_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/splash_screen_v3.dart';
+import 'widgets/network_wrapper.dart';
+import 'widgets/noir_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
+
+enum _Screen { splash, login, app }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -16,116 +20,68 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool? _isLoggedIn;
+  _Screen _screen = _Screen.splash;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkLoginStatus();
+  Future<void> _onSplashComplete() async {
+    if (!mounted) return;
+    setState(() => _screen = _Screen.login);
   }
 
-  void _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-    });
+  void _onLoginComplete() {
+    if (!mounted) return;
+    setState(() => _screen = _Screen.app);
+  }
+
+  void _onLogout() {
+    if (!mounted) return;
+    setState(() => _screen = _Screen.login);
+  }
+
+  Widget _buildCurrentScreen() {
+    switch (_screen) {
+      case _Screen.splash:
+      return SplashScreenV3(onComplete: _onSplashComplete);
+      case _Screen.login:
+        return LoginScreen(onLoginComplete: _onLoginComplete);
+      case _Screen.app:
+        return DarkApplePage(onLogout: _onLogout);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoggedIn == null) {
-      // Premium dark loading indicator while checking local storage session
-      return const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: Color(0xFF0A0A0E),
-          body: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE2E8F0)),
-            ),
-          ),
-        ),
-      );
-    }
-
     return MaterialApp(
-      title: 'JOEX TOOL',
+      title: 'Britain Apple',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ar'),
       theme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE2E8F0),
+          seedColor: kOrangePrimary,
           brightness: Brightness.dark,
-          primary: const Color(0xFFE2E8F0),
-          secondary: const Color(0xFF718096),
-          surface: const Color(0xFF16161F),
+          primary: kOrangePrimary,
+          secondary: kFlameAmber,
+          surface: kSteel,
+          error: kAlert,
         ),
-        scaffoldBackgroundColor: const Color(0xFF0A0A0E),
+        scaffoldBackgroundColor: kCoal,
         useMaterial3: true,
       ),
-      home: _isLoggedIn!
-          ? const JoeXApplePage()
-          : Builder(
-              builder: (context) {
-                return JoeXSplashPage(
-                  onComplete: () {
-                    // Custom premium transition: Fade and Scale into the Cyberpunk Login Screen
-                    Navigator.of(context).pushReplacement(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => JoeXLoginPage(
-                          onComplete: () async {
-                            // Save session state locally
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setBool('is_logged_in', true);
-
-                            // Transition directly to the JoeX APPLE Screen
-                            if (context.mounted) {
-                              Navigator.of(context).pushReplacement(
-                                PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const JoeXApplePage(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    final scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                                      CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-                                    );
-                                    final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                                      CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-                                    );
-                                    return FadeTransition(
-                                      opacity: fadeAnimation,
-                                      child: ScaleTransition(
-                                        scale: scaleAnimation,
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  transitionDuration: const Duration(milliseconds: 700),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          final scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-                            CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-                          );
-                          final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-                            CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-                          );
-                          return FadeTransition(
-                            opacity: fadeAnimation,
-                            child: ScaleTransition(
-                              scale: scaleAnimation,
-                              child: child,
-                            ),
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 700),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: NetworkWrapper(child: child ?? const SizedBox.shrink()),
+        );
+      },
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        child: KeyedSubtree(
+          key: ValueKey(_screen),
+          child: _buildCurrentScreen(),
+        ),
+      ),
     );
   }
 }

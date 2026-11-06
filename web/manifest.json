@@ -1,11 +1,11 @@
 {
-    "name": "JOEX VIP",
-    "short_name": "JOEX VIP",
+    "name": "بريطانيا التفاحة",
+    "short_name": "بريطانيا التفاحة",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "JOEX VIP",
+    "background_color": "#1A0A2E",
+    "theme_color": "#7C4DC8",
+    "description": "بريطانيا التفاحة",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

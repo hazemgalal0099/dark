@@ -47,3 +47,14 @@ app.*.map.json
 # Exclude accidentally copied JDK
 **/oracleJdk-26/
 
+
+# Build artifacts & temp files
+*.apk
+*.zip
+*.ps1
+.wrangler/
+build_test/
+telegram_link_bot.py
+russia_script_web_optimized/
+.vscode/
+deploy_cf.js

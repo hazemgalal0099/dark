@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.joe" "\0"
-            VALUE "FileDescription", "joexnwe" "\0"
+            VALUE "CompanyName", "com.stark" "\0"
+            VALUE "FileDescription", "stark_apple" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "joexnwe" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.joe. All rights reserved." "\0"
-            VALUE "OriginalFilename", "joexnwe.exe" "\0"
-            VALUE "ProductName", "joexnwe" "\0"
+            VALUE "InternalName", "stark_apple" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.stark. All rights reserved." "\0"
+            VALUE "OriginalFilename", "stark_apple.exe" "\0"
+            VALUE "ProductName", "DARK TOOLS" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

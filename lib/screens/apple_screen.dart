@@ -1,669 +1,272 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/crest_header.dart';
+import '../widgets/noir_theme.dart';
+import '../widgets/british_flag.dart';
 
-class JoeXApplePage extends StatefulWidget {
-  const JoeXApplePage({super.key});
+class DarkApplePage extends StatefulWidget {
+  final VoidCallback? onLogout;
+
+  const DarkApplePage({super.key, this.onLogout});
 
   @override
-  State<JoeXApplePage> createState() => _JoeXApplePageState();
+  State<DarkApplePage> createState() => _DarkApplePageState();
 }
 
-class _JoeXApplePageState extends State<JoeXApplePage>
+class _DarkApplePageState extends State<DarkApplePage>
     with TickerProviderStateMixin {
-  // Session / Storage data
-  late SharedPreferences _prefs;
-  String _userId = "JOE_VIP_USER";
-  int _totalWins = 0;
-  String _selectedPlatformName = "Melbet";
+  late final AnimationController _enterController;
+  late final AnimationController _spinController;
 
-  // Server Mode state variables
-  int _selectedServerMode = 1; // 0: Balanced, 1: Secure, 2: Risky
-  double _balancedServerSuccess = 98.5;
-  double _secureServerSuccess = 99.3;
-  double _riskyServerSuccess = 96.6;
+  // 10 أرقام عشوائية من 0 لـ 4 (خانة واحدة فائزة لكل صف من الـ 10)
+  late List<int> _winners;
+  int _revealedRows = 0; // من 0 لـ 10
 
-  Timer? _fluctuationTimer;
-
-  // Grid representation (10 rows, 5 columns)
-  final int _rows = 10;
-  final int _cols = 5;
-  late List<List<CellState>> _grid;
-
-  // Odds list
-  final List<String> _odds = [
-    "x349.68",
-    "x69.93",
-    "x27.97",
-    "x11.18",
-    "x6.71",
-    "x4.02",
-    "x2.41",
-    "x1.93",
-    "x1.54",
-    "x1.23",
-  ];
-
-  // Prediction Grid States
-  int _activeRow = -1;
-  bool _isPredicting = false;
-  bool _isRestoring = false;
-
-  // Button scale animations
-  double _predictScale = 1.0;
-  double _restoreScale = 1.0;
-  late AnimationController _rotationController;
+  bool _loggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _rotationController = AnimationController(
+    _generateWinners();
+    _loadUserData();
+
+    _enterController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-    _initPreferences();
-    _initGrid();
-
-    // Fluctuating server uptime metrics
-    _fluctuationTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (mounted) {
-        setState(() {
-          final random = math.Random();
-          _balancedServerSuccess = (98.0 + random.nextDouble() * 1.0).clamp(95.0, 100.0);
-          _secureServerSuccess = (99.0 + random.nextDouble() * 0.8).clamp(95.0, 100.0);
-          _riskyServerSuccess = (95.5 + random.nextDouble() * 2.0).clamp(95.0, 100.0);
-        });
-      }
-    });
-  }
-
-  void _initPreferences() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userId = _prefs.getString('user_id') ?? "JOE_VIP_USER";
-      _totalWins = _prefs.getInt('total_wins') ?? 245;
-      _selectedPlatformName = _prefs.getString('selected_platform') ?? "Melbet";
-    });
-  }
-
-  void _initGrid() {
-    _grid = List.generate(
-      _rows,
-      (r) => List.generate(_cols, (c) => CellState(type: 0)),
+      duration: const Duration(milliseconds: 900),
     );
+
+    _spinController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4600),
+    );
+
+    if (isWidgetTest) {
+      _enterController.value = 1.0;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (motionAllowed(context)) {
+            _enterController.forward();
+            _spinController.repeat();
+          } else {
+            _enterController.value = 1.0;
+          }
+        }
+      });
+    }
+  }
+
+  void _generateWinners() {
+    final rand = math.Random();
+    _winners = List.generate(10, (_) => rand.nextInt(5));
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _loggedIn = prefs.getBool('is_logged_in') ?? false;
+    });
   }
 
   @override
   void dispose() {
-    _rotationController.dispose();
-    _fluctuationTimer?.cancel();
+    _enterController.dispose();
+    _spinController.dispose();
     super.dispose();
   }
 
-  void _showNotification(String message, bool isError) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          textAlign: TextAlign.right,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: isError ? Colors.redAccent.withValues(alpha: 0.9) : const Color(0xFF1C1C28),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isError ? Colors.redAccent : const Color(0xFF6C9EFF),
-            width: 1.0,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Session Logout
-  void _logout() async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF0F0F12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFF1E1E28), width: 1.0),
-          ),
-          title: const Text(
-            "تسجيل الخروج",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.right,
-          ),
-          content: const Text(
-            "هل أنت متأكد من رغبتك في تسجيل الخروج؟ سيتم مسح الجلسة الحالية.",
-            style: TextStyle(color: Color(0xFF8888AA)),
-            textAlign: TextAlign.right,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text(
-                "إلغاء",
-                style: TextStyle(color: Color(0xFF5A5A6E)),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                "خروج",
-                style: TextStyle(
-                  color: Color(0xFF6C9EFF),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm == true) {
-      await _prefs.setBool('is_logged_in', false);
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, anim1, anim2) =>
-                JoeXLoginPage(onComplete: () {}),
-            transitionsBuilder: (context, anim1, anim2, child) {
-              return FadeTransition(opacity: anim1, child: child);
-            },
-          ),
-        );
-      }
-    }
-  }
-
-  // Next prediction round
-  void _startNextRound() async {
-    if (_isPredicting || _isRestoring) return;
-
-    bool hasApples = _grid.any((row) => row.any((cell) => cell.type == 1));
-    if (hasApples) {
-      _showNotification("قم باستعادة السيرفر أولاً لتنظيف النتائج السابقة", true);
+  void _revealNextRow() {
+    if (!_loggedIn) {
+      _showLoginRequiredDialog();
       return;
     }
 
-    setState(() {
-      _isPredicting = true;
-    });
+    if (_revealedRows >= 10) return;
 
-    // 1. Show Connecting server Dialog
-    await showGeneralDialog(
+    HapticFeedback.lightImpact();
+    setState(() {
+      _revealedRows = (_revealedRows + 1).clamp(0, 10);
+    });
+  }
+
+  void _resetBoard() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _revealedRows = 0;
+      _generateWinners();
+    });
+  }
+
+  void _showLoginRequiredDialog() {
+    showDialog(
       context: context,
-      barrierDismissible: false,
-      barrierLabel: "ServerConnection",
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return FadeTransition(
-          opacity: anim1,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(anim1),
-            child: HackerTerminalDialog(
-              title: "CONNECTION_SECURE_TUNNEL: PORT_8443",
-              commands: const [
-                "INITIALIZING BYPASS ENGINE PROTOCOL v5.0...",
-                "ESTABLISHING SECURE UDP CONNECTION TO HOST: srv-09.joex.net",
-                "PING LATENCY: 11ms // PACKET INTEGRITY: 100%",
-                "BYPASSING INTEGRITY ANTI-CHEAT SUBSYSTEMS...",
-                "WARNING: ENCRYPTED FIREWALL DETECTED. ENABLING AES BYPASS...",
-                "STATUS: EXPLOIT INJECTED SUCCESSFUL [OK]",
-                "FETCHING CELL MATRIX COORDINATES FROM MAIN DATABASE...",
-                "READING SEED DECRYPTION ENTROPY...",
-                "DECRYPTING SAFE APPLE CELL LOCATIONS...",
-                "MAPPING TARGET MATRIX (10x5)...",
-                "LOCATING ROW DECRYPTION VECTOR VALS...",
-                "SYNCING LOCAL TELEMETRY BUFFER WITH CLIENT...",
-                "BYPASS AND DECRYPTION COMPLETED SUCCESSFULLY.",
-                "STATUS: SYSTEM STABLE. ENCRYPTED HOOKS ARMED.",
-              ],
+      builder: (ctx) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            backgroundColor: kSteel,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+              side: const BorderSide(color: Colors.white, width: 1.2),
             ),
-          ),
-        );
-      },
-    );
-
-    // 2. Play prediction animations sequentially from bottom (Row 9) to top (Row 0)
-    final random = math.Random();
-    for (int r = _rows - 1; r >= 0; r--) {
-      if (!mounted) return;
-      setState(() {
-        _activeRow = r;
-      });
-
-      await Future.delayed(const Duration(milliseconds: 250));
-
-      final int chosenCol = random.nextInt(_cols);
-
-      setState(() {
-        _grid[r][chosenCol].type = 1;
-        _grid[r][chosenCol].isFlipped = true;
-      });
-
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
-
-    setState(() {
-      _activeRow = -1;
-      _isPredicting = false;
-      _totalWins += 1;
-    });
-
-    await _prefs.setInt('total_wins', _totalWins);
-    _showNotification("تم فك تشفير مصفوفة الخانات بنجاح", false);
-  }
-
-  // Restore server grid
-  void _restoreServer() async {
-    if (_isPredicting || _isRestoring) return;
-
-    bool hasApples = _grid.any((row) => row.any((cell) => cell.type == 1));
-    if (!hasApples) {
-      _showNotification("السيرفر مستعاد بالفعل ولا يوجد نتائج سابقة", true);
-      return;
-    }
-
-    setState(() {
-      _isRestoring = true;
-    });
-
-    // 1. Show Restoring Dialog
-    await showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierLabel: "ServerRestore",
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
-      transitionBuilder: (context, anim1, anim2, child) {
-        return FadeTransition(
-          opacity: anim1,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.95, end: 1.0).animate(anim1),
-            child: HackerTerminalDialog(
-              title: "RECOVERY_SYSTEM: STATE_RESET",
-              commands: const [
-                "RECOVERY INITIATED...",
-                "DISCONNECTING SYSTEM HOOKS FROM SRV-09...",
-                "FLUSHING CELL STATE BUFFERS...",
-                "RE-ESTABLISHING ANTICHEAT CHECK INTEGRITY...",
-                "PURGING PREVIOUS SCAN RESULTS...",
-                "GRID CALIBRATION: SUCCESSFUL [OK]",
-                "SYSTEM RESTORED TO DEFAULT ACTIVE STATE.",
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    // 2. Play reverse clean animation
-    for (int r = 0; r < _rows; r++) {
-      if (!mounted) return;
-      setState(() {
-        _activeRow = r;
-      });
-
-      for (int c = 0; c < _cols; c++) {
-        if (_grid[r][c].type == 1) {
-          setState(() {
-            _grid[r][c].type = 0;
-            _grid[r][c].isFlipped = false;
-          });
-          await Future.delayed(const Duration(milliseconds: 100));
-        }
-      }
-    }
-
-    setState(() {
-      _activeRow = -1;
-      _isRestoring = false;
-    });
-
-    _showNotification("تمت استعادة حالة الاتصال الافتراضية", false);
-  }
-
-  Widget _buildTopChip(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141418),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF2A2A35)),
-      ),
-      child: Text(
-        "$label: $value",
-        style: const TextStyle(
-          color: Color(0xFF8888AA),
-          fontSize: 10,
-          fontFamily: 'monospace',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServerCard(int index, String name, String uptime, String port, bool isActive) {
-    final isSelected = _selectedServerMode == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedServerMode = index;
-          });
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF0D0D1A) : const Color(0xFF0F0F12),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF6C9EFF) : const Color(0xFF1E1E28),
-                width: 1.0,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isActive ? const Color(0xFF4ADE80) : const Color(0xFF5A5A6E),
-                      ),
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: kSilverGradient,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.lock_outline_rounded,
+                      color: kOnSilver,
+                      size: 26,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  uptime,
-                  style: const TextStyle(
+                  'تسجيل الدخول',
+                  style: arabic(
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontFamily: 'Rajdhani',
+                    color: kChalk,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  port,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 10,
-                    color: Color(0xFF5A5A6E),
+                  'يرجى تسجيل الدخول أولاً لتشغيل أداة التفاحة',
+                  textAlign: TextAlign.center,
+                  style: arabic(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: kAsh,
                   ),
+                ),
+                const SizedBox(height: 16),
+                WineButton(
+                  text: 'حسناً',
+                  compact: true,
+                  onPressed: () => Navigator.of(ctx).pop(),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridSlot(bool isFilled) {
-    return SizedBox(
-      width: 36,
-      height: 36,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          return ScaleTransition(
-            scale: animation,
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-        child: isFilled
-            ? Image.asset(
-                "assets/cell_apple.png",
-                key: const ValueKey("apple"),
-                width: 36,
-                height: 36,
-                fit: BoxFit.contain,
-              )
-            : Image.asset(
-                "assets/cell_default.png",
-                key: const ValueKey("default"),
-                width: 36,
-                height: 36,
-                fit: BoxFit.contain,
-              ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required String url,
-  }) {
-    return GestureDetector(
-      onTap: () async {
-        final Uri uri = Uri.parse(url);
-        try {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } catch (_) {}
+        );
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F0F12),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF1E1E28)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080808),
-      body: Stack(
-        children: [
-          // Diagonal texture overlay
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DiagonalLineTexturePainter(),
-            ),
-          ),
+      backgroundColor: kCoal,
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: NoirCanvas(
+          child: Stack(
+            children: [
+              // القائمة الرئيسية مع الترويسة والبطاقة الرئيسية والصفوف (بدون معرف الحساب تماماً)
+              ListView(
+                padding: const EdgeInsets.only(bottom: 110),
+                children: [
+                  const CrestHeader(ringSize: 62),
+                  const SizedBox(height: 14),
+                  _buildMainTicketCard(),
+                ],
+              ),
 
-          SafeArea(
-            child: Column(
+              // شريط تحكم عائم سفلي
+              Positioned(
+                bottom: 18,
+                left: 18,
+                right: 18,
+                child: _buildFloatingControls(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainTicketCard() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 460),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+          child: TicketCard(
+            notchAt: 106,
+            header: Stack(
               children: [
-                // Top Bar (operator ID & logout)
-                Container(
-                  color: const Color(0xFF0F0F12),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                Positioned.fill(
+                  child: Center(
+                    child: Opacity(
+                      opacity: 0.045,
+                      child: Text(
+                        'BRITAIN APPLE',
+                        style: brand(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 4.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18.0,
+                    vertical: 10.0,
+                  ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Left: Logout minimal button
-                          GestureDetector(
-                            onTap: _logout,
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFF1E1E28)),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.logout,
-                                color: Color(0xFF5A5A6E),
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                          // Center: App title
-                          const Text(
-                            "JOEX TOOL",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          // Right: Circular Avatar
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(0xFF2A2A35),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                "assets/app_logo.png",
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Chips list
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildTopChip("TUNNEL", "11MS"),
-                          const SizedBox(width: 8),
-                          _buildTopChip("BYPASS", "STABLE"),
-                          const SizedBox(width: 8),
-                          _buildTopChip("SECURITY", "HIGH"),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Main Scrollable Area
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Operator Card
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F0F12),
-                              border: Border.all(color: const Color(0xFF1E1E28)),
-                            ),
+                          Expanded(
                             child: Row(
                               children: [
-                                // Left: Custom rotating server icon
-                                SizedBox(
-                                  width: 40,
-                                  height: 40,
-                                  child: RotationTransition(
-                                    turns: _rotationController,
-                                    child: CustomPaint(
-                                      painter: RotatingServerPainter(
-                                        color: const Color(0xFF6C9EFF),
-                                      ),
-                                    ),
-                                  ),
+                                const Text(
+                                  '🍎',
+                                  style: TextStyle(fontSize: 16),
                                 ),
-                                const SizedBox(width: 16),
-                                // Right: Text details
+                                const SizedBox(width: 6),
+                                const BritishFlagInline(size: 15),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Text(
-                                        "OPERATOR ID",
-                                        style: TextStyle(
-                                          color: Color(0xFF5A5A6E),
-                                          fontSize: 10,
-                                          fontFamily: 'monospace',
-                                          letterSpacing: 2,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
                                       Text(
-                                        _userId,
-                                        style: const TextStyle(
+                                        'سر التفاحة 🔥',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: arabic(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
                                           color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF1A1A28),
-                                          border: Border.all(color: const Color(0xFF6C9EFF)),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          "${_selectedPlatformName.toUpperCase()} VIP",
-                                          style: const TextStyle(
-                                            color: Color(0xFF6C9EFF),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      Text(
+                                        'اللوحة السينمائية التفاعلية — الإصدار الناري',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: arabic(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          color: kOrangeLight,
                                         ),
                                       ),
                                     ],
@@ -672,563 +275,541 @@ class _JoeXApplePageState extends State<JoeXApplePage>
                               ],
                             ),
                           ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Multiplier Grid Title Section
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "PREDICTION MATRIX",
-                              style: TextStyle(
-                                color: Color(0xFF5A5A6E),
-                                fontSize: 11,
-                                fontFamily: 'monospace',
-                                letterSpacing: 1.5,
+                          const SizedBox(width: 8),
+                          // الشارة [ 4 / 10 ]
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: kSilverPit,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: kSilver.withValues(alpha: 0.50),
+                                width: 1,
                               ),
                             ),
-                            SizedBox(height: 6),
-                            Divider(color: Color(0xFF1E1E28), height: 1, thickness: 1),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Multiplier Grid Matrix Container using individual cards with blue glow
-                        Column(
-                          children: List.generate(_rows, (rowIndex) {
-                            final isRowActive = _activeRow == rowIndex;
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F0F12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isRowActive ? const Color(0xFF6C9EFF) : const Color(0xFF1E1E28),
-                                  width: 1.0,
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Text(
+                                '$_revealedRows / 10',
+                                style: latin(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: kChalk,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF6C9EFF).withValues(
-                                      alpha: isRowActive ? 0.20 : 0.08,
-                                    ),
-                                    blurRadius: isRowActive ? 10 : 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Multiplier Odds Card Badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF141418),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: const Color(0xFF1E1E28)),
-                                    ),
-                                    child: Text(
-                                      _odds[rowIndex],
-                                      style: const TextStyle(
-                                        color: Color(0xFF6C9EFF),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        fontFamily: 'Rajdhani',
-                                      ),
-                                    ),
-                                  ),
-                                  // 5 Icon Slots (RTL layout)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: List.generate(_cols, (colIndex) {
-                                      final cell = _grid[rowIndex][colIndex];
-                                      final isFilled = cell.type == 1;
-                                      return Padding(
-                                        padding: const EdgeInsets.only(left: 8.0),
-                                        child: _buildGridSlot(isFilled),
-                                      );
-                                    }),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Server Selector Title
-                        const Text(
-                          "SELECT NODE",
-                          style: TextStyle(
-                            color: Color(0xFF5A5A6E),
-                            fontSize: 11,
-                            fontFamily: 'monospace',
+                            ),
                           ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Server Selector Grid
-                        Row(
-                          children: [
-                            _buildServerCard(0, "سيرفر متوازن", "${_balancedServerSuccess.toStringAsFixed(1)}%", "PORT-810", true),
-                            const SizedBox(width: 10),
-                            _buildServerCard(1, "سيرفر آمن", "${_secureServerSuccess.toStringAsFixed(1)}%", "PORT-8443", true),
-                            const SizedBox(width: 10),
-                            _buildServerCard(2, "سيرفر مخاطرة", "${_riskyServerSuccess.toStringAsFixed(1)}%", "PORT-902", false),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Action Buttons Row
-                        Row(
-                          children: [
-                            // Secondary Button: استعادة السيرفر
-                            Expanded(
-                              child: GestureDetector(
-                                onTapDown: (_) => setState(() => _restoreScale = 0.97),
-                                onTapUp: (_) => setState(() => _restoreScale = 1.0),
-                                onTapCancel: () => setState(() => _restoreScale = 1.0),
-                                onTap: _restoreServer,
-                                child: AnimatedScale(
-                                  scale: _restoreScale,
-                                  duration: const Duration(milliseconds: 100),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Container(
-                                      height: 54,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF141418),
-                                        border: Border.all(color: const Color(0xFF2A2A35)),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        "استعادة السيرفر",
-                                        style: TextStyle(
-                                          color: Color(0xFF8888AA),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Primary Button: الدور القادم
-                            Expanded(
-                              child: GestureDetector(
-                                onTapDown: (_) => setState(() => _predictScale = 0.97),
-                                onTapUp: (_) => setState(() => _predictScale = 1.0),
-                                onTapCancel: () => setState(() => _predictScale = 1.0),
-                                onTap: _startNextRound,
-                                child: AnimatedScale(
-                                  scale: _predictScale,
-                                  duration: const Duration(milliseconds: 100),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Container(
-                                      height: 54,
-                                      color: const Color(0xFF6C9EFF),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        "الدور القادم",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildSocialButton(
-                              label: "قناة التليجرام",
-                              icon: Icons.send,
-                              color: const Color(0xFF229ED9),
-                              url: "https://t.me/elostora_vip",
-                            ),
-                            const SizedBox(width: 16),
-                            _buildSocialButton(
-                              label: "قناة اليوتيوب",
-                              icon: Icons.play_circle_fill,
-                              color: const Color(0xFFFF0000),
-                              url: "https://youtube.com/@sir_joex1",
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Custom paint rotating server icon (circular outline + horizontal slots + status dots)
-class RotatingServerPainter extends CustomPainter {
-  final Color color;
-
-  RotatingServerPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-    final double cx = w / 2;
-    final double cy = h / 2;
-    final double r = math.min(w, h) / 2;
-
-    // Draw faint outer circle
-    final paintRing = Paint()
-      ..color = color.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawCircle(Offset(cx, cy), r, paintRing);
-
-    // Draw 3 bold arcs to clearly showcase rotation
-    final paintArcs = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    for (int i = 0; i < 3; i++) {
-      final double startAngle = i * (2 * math.pi / 3);
-      canvas.drawArc(
-        Rect.fromCircle(center: Offset(cx, cy), radius: r),
-        startAngle,
-        math.pi / 4,
-        false,
-        paintArcs,
-      );
-    }
-
-    // Draw a distributed network server topology in the center
-    final paintCoreNode = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    
-    final paintPeripheralNode = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    final paintLinkLine = Paint()
-      ..color = color.withValues(alpha: 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    final paintPulseDot = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    // Center Core Server
-    canvas.drawCircle(Offset(cx, cy), 3.5, paintCoreNode);
-
-    // 3 Linked Peripheral Nodes
-    final double nodeDistance = r * 0.55;
-    for (int i = 0; i < 3; i++) {
-      final double angle = i * (2 * math.pi / 3) - math.pi / 2;
-      final double nx = cx + nodeDistance * math.cos(angle);
-      final double ny = cy + nodeDistance * math.sin(angle);
-
-      // Draw link line
-      canvas.drawLine(Offset(cx, cy), Offset(nx, ny), paintLinkLine);
-
-      // Draw peripheral node server box/circle
-      canvas.drawCircle(Offset(nx, ny), 2.5, paintPeripheralNode);
-
-      // Draw data transmission pulse dot at 50% along the link path
-      final double px = cx + (nodeDistance * 0.5) * math.cos(angle);
-      final double py = cy + (nodeDistance * 0.5) * math.sin(angle);
-      canvas.drawCircle(Offset(px, py), 1.0, paintPulseDot);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant RotatingServerPainter oldDelegate) => oldDelegate.color != color;
-}
-
-// Background diagonal lines pattern overlay (3% opacity)
-class DiagonalLineTexturePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF6C9EFF).withValues(alpha: 0.03)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    const double spacing = 18.0;
-    for (double i = -size.height; i < size.width; i += spacing) {
-      canvas.drawLine(
-        Offset(i, 0),
-        Offset(i + size.height, size.height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant DiagonalLineTexturePainter oldDelegate) => false;
-}
-
-// Cell state tracking
-class CellState {
-  int type; // 0: empty, 1: apple
-  bool isFlipped;
-
-  CellState({
-    required this.type,
-    this.isFlipped = false,
-  });
-}
-
-// Blinking console cursor for dialog logs
-class BlinkingConsoleCursor extends StatefulWidget {
-  const BlinkingConsoleCursor({super.key});
-
-  @override
-  State<BlinkingConsoleCursor> createState() => _BlinkingConsoleCursorState();
-}
-
-class _BlinkingConsoleCursorState extends State<BlinkingConsoleCursor>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _controller.value > 0.5 ? 1.0 : 0.0,
-          child: Container(
-            width: 6,
-            height: 10,
-            color: const Color(0xFF6C9EFF),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// Hacker terminal console simulator dialog
-class HackerTerminalDialog extends StatefulWidget {
-  final String title;
-  final List<String> commands;
-
-  const HackerTerminalDialog({
-    super.key,
-    required this.title,
-    required this.commands,
-  });
-
-  @override
-  State<HackerTerminalDialog> createState() => _HackerTerminalDialogState();
-}
-
-class _HackerTerminalDialogState extends State<HackerTerminalDialog> {
-  final List<String> _visibleCommands = [];
-  final ScrollController _scrollController = ScrollController();
-  Timer? _timer;
-  int _currentIndex = 0;
-  bool _isComplete = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _printNextCommand();
-  }
-
-  void _printNextCommand() {
-    if (_currentIndex < widget.commands.length) {
-      if (mounted) {
-        setState(() {
-          _visibleCommands.add(widget.commands[_currentIndex]);
-          _currentIndex++;
-        });
-      }
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-
-      _timer = Timer(const Duration(milliseconds: 150), _printNextCommand);
-    } else {
-      if (mounted) {
-        setState(() {
-          _isComplete = true;
-        });
-      }
-      _timer = Timer(const Duration(milliseconds: 600), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: size.width * 0.88,
-            height: size.height * 0.42,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F0F12),
-              border: Border.all(color: const Color(0xFF1E1E28), width: 1.0),
-            ),
-            child: Column(
-              children: [
-                // Title Bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  color: const Color(0xFF141418),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle)),
-                          const SizedBox(width: 6),
-                          Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle)),
-                          const SizedBox(width: 6),
-                          Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF6C9EFF), shape: BoxShape.circle)),
                         ],
                       ),
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          color: Color(0xFF6C9EFF),
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
+                      const SizedBox(height: 10),
+                      StepMeter(total: 10, current: _revealedRows),
                     ],
                   ),
                 ),
-                // Terminal output body
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: _visibleCommands.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == _visibleCommands.length) {
-                          return _isComplete
-                              ? const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                                  child: Text(
-                                    "ALL SYSTEMS STABLE. COORDINATES DECRYPTED.",
-                                    style: TextStyle(
-                                      color: Color(0xFF6C9EFF),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'monospace',
-                                    ),
-                                  ),
-                                )
-                              : const Row(
-                                  children: [
-                                    Text(
-                                      "> BYPASS_SYS: ",
-                                      style: TextStyle(
-                                        color: Color(0xFF6C9EFF),
-                                        fontSize: 10,
-                                        fontFamily: 'monospace',
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    BlinkingConsoleCursor(),
-                                  ],
-                                );
-                        }
-
-                        final cmd = _visibleCommands[index];
-                        final bool isError = cmd.contains("WARNING") || cmd.contains("FIREWALL");
-                        final bool isSuccess = cmd.contains("SUCCESS") || cmd.contains("[OK]") || cmd.contains("COMPLETED");
-
-                        Color cmdColor = const Color(0xFF8888AA);
-                        if (isError) cmdColor = Colors.redAccent;
-                        if (isSuccess) cmdColor = const Color(0xFF6C9EFF);
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2.0),
-                          child: Text(
-                            cmd,
-                            style: TextStyle(
-                              color: cmdColor,
-                              fontSize: 10,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
               ],
+            ),
+            body: Column(
+              children: List.generate(10, (row) {
+                final number = 10 - row;
+                final revealed = _revealedRows >= number;
+                final current = _revealedRows > 0 && _revealedRows == number;
+                final winnerCell = _winners[row];
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: _buildRowTrack(
+                    number: number,
+                    revealed: revealed,
+                    current: current,
+                    winnerCell: winnerCell,
+                  ),
+                );
+              }),
             ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildRowTrack({
+    required int number,
+    required bool revealed,
+    required bool current,
+    required int winnerCell,
+  }) {
+    final Color capBg = current
+        ? Colors.transparent
+        : (revealed ? kSilverPit : kGraphite);
+    final Gradient? capGrad = current ? kSilverGradient : null;
+    final Color capBorder = current
+        ? Colors.white
+        : (revealed ? kSilver.withValues(alpha: 0.60) : kEdge);
+    final Color capTextColor = current
+        ? kOnSilver
+        : (revealed ? kSilverLight : kAsh);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double trackWidth = constraints.maxWidth - 54.0;
+        final double cellSize = (trackWidth / 5.0 - 6.0).clamp(24.0, 48.0);
+
+        return Row(
+          children: [
+            // 1. كبسولة رقم الصف
+            Container(
+              width: 46,
+              height: cellSize + 8,
+              decoration: BoxDecoration(
+                color: capBg,
+                gradient: capGrad,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: capBorder, width: 1.2),
+                boxShadow: current
+                    ? [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.30),
+                          blurRadius: 10,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'الصف',
+                      style: arabic(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: capTextColor,
+                      ),
+                    ),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        '$number',
+                        style: latin(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: capTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // 2. مضمار الخانات الخمس
+            Expanded(
+              child: Container(
+                height: cellSize + 8,
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  color: current
+                      ? kSteelHi
+                      : (revealed ? const Color(0xFF24103A) : kGraphite),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: current
+                        ? kSilver.withValues(alpha: 0.70)
+                        : (revealed ? kSilver.withValues(alpha: 0.35) : kEdge),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: List.generate(5, (col) {
+                    final bool isWinning = revealed && col == winnerCell;
+
+                    return Expanded(
+                      child: Center(
+                        child: AppleOrb(
+                          key: ValueKey('orb_${number}_$col'),
+                          isWinning: isWinning,
+                          isActiveRow: current,
+                          size: cellSize,
+                          spin: _spinController,
+                          phase: (col * 0.2) + (number * 0.1),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFloatingControls() {
+    final bool canReveal = _revealedRows < 10;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: kSteel.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(34),
+            border: Border.all(color: kEdgeHi, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.70),
+                blurRadius: 26,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // زر ابدأ الناري الفاخر
+              Expanded(
+                child: WineButton(
+                  text: 'ابدأ',
+                  icon: Icons.local_fire_department_rounded,
+                  onPressed: canReveal ? _revealNextRow : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // زر إعادة تعيين
+              Tooltip(
+                message: 'إعادة تعيين',
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: kGraphite,
+                    border: Border.all(color: kEdgeHi, width: 1.2),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: kAsh,
+                      size: 22,
+                    ),
+                    onPressed: _resetBoard,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// AppleOrb — خانة التفاحة المعدنية الفاخرة
+// ==========================================
+class AppleOrb extends StatefulWidget {
+  final bool isWinning;
+  final bool isActiveRow;
+  final double size;
+  final Animation<double> spin;
+  final double phase;
+
+  const AppleOrb({
+    super.key,
+    required this.isWinning,
+    required this.isActiveRow,
+    required this.size,
+    required this.spin,
+    this.phase = 0.0,
+  });
+
+  @override
+  State<AppleOrb> createState() => _AppleOrbState();
+}
+
+class _AppleOrbState extends State<AppleOrb>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _burnController;
+
+  @override
+  void initState() {
+    super.initState();
+    _burnController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    if (widget.isWinning) {
+      if (isWidgetTest) {
+        _burnController.value = 1.0;
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            if (motionAllowed(context)) {
+              _burnController.forward();
+            } else {
+              _burnController.value = 1.0;
+            }
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AppleOrb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isWinning && widget.isWinning) {
+      if (motionAllowed(context)) {
+        _burnController.forward(from: 0.0);
+      } else {
+        _burnController.value = 1.0;
+      }
+    } else if (oldWidget.isWinning && !widget.isWinning) {
+      _burnController.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _burnController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double s = widget.size;
+
+    return SizedBox(
+      width: s,
+      height: s,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([widget.spin, _burnController]),
+        builder: (context, _) {
+          final double t = _burnController.value;
+
+          return Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              // الصورتين فقط بدون أي شكل تحتيهم
+              _buildImages(s, t),
+
+              // الاشتعال عند الفوز
+              if (widget.isWinning && t > 0.0)
+                Positioned.fill(
+                  child: CustomPaint(painter: BlazePainter(t: t)),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildImages(double s, double t) {
+    if (!widget.isWinning) {
+      return Image.asset(
+        'assets/cell_default.png',
+        width: s,
+        height: s,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) =>
+            Icon(Icons.circle, color: kSteelHi, size: s * 0.7),
+      );
+    }
+
+    final double oldOpacity = (1.0 - (t / 0.34)).clamp(0.0, 1.0);
+
+    final double appleSubT = ((t - 0.42) / 0.45).clamp(0.0, 1.0);
+    final double appleProgress = Curves.easeOutBack.transform(appleSubT);
+    final double appleScale = 0.45 + (0.55 * appleProgress);
+    final double appleRotation = -0.3 * (1.0 - appleSubT);
+    final double appleOpacity = appleSubT.clamp(0.0, 1.0);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        if (oldOpacity > 0.0)
+          Opacity(
+            opacity: oldOpacity,
+            child: Image.asset(
+              'assets/cell_default.png',
+              width: s,
+              height: s,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+        if (t >= 0.42)
+          Opacity(
+            opacity: appleOpacity,
+            child: Transform.rotate(
+              angle: appleRotation,
+              child: Transform.scale(
+                scale: appleScale,
+                child: Image.asset(
+                  'assets/cell_apple.png',
+                  width: s,
+                  height: s,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => const Icon(
+                    Icons.apple_rounded,
+                    color: kSilverLight,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ==========================================
+// BlazePainter — أنيميشن الاشتعال الناري
+// ==========================================
+class BlazePainter extends CustomPainter {
+  final double t; // 0.0 -> 1.0
+
+  static const Color _core = Color(0xFFFFFFFF);
+  static const Color _flame = Color(0xFFB39DDB); // Soft lavender
+  static const Color _ember = Color(0xFF7C4DC8); // Purple
+
+  const BlazePainter({required this.t});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (t <= 0.0 || t >= 1.0) return;
+
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+
+    // 1. شرارة تلف الحافة
+    if (t < 0.46) {
+      final lap = (t / 0.38).clamp(0.0, 1.0);
+      final headAngle = (-math.pi / 2) + (lap * 2 * math.pi);
+
+      for (int k = 1; k <= 16; k++) {
+        final back = k / 16.0;
+        final tailAngle = headAngle - (back * 0.85);
+        final alpha = math.pow(1.0 - back, 2) * 0.85;
+        final tailPos = Offset(
+          c.dx + r * math.cos(tailAngle),
+          c.dy + r * math.sin(tailAngle),
+        );
+
+        final tailPaint = Paint()
+          ..color = _flame.withValues(alpha: alpha.clamp(0.0, 1.0))
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+        canvas.drawCircle(tailPos, 3.0 * (1.0 - back), tailPaint);
+      }
+
+      final headPos = Offset(
+        c.dx + r * math.cos(headAngle),
+        c.dy + r * math.sin(headAngle),
+      );
+      final headHalo = Paint()
+        ..color = Colors.white.withValues(alpha: 0.90)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+      canvas.drawCircle(headPos, 6, headHalo);
+
+      final headCore = Paint()..color = _core;
+      canvas.drawCircle(headPos, 2.5, headCore);
+    }
+
+    // 2. ألسنة وهج بلاتيني
+    if (t >= 0.26 && t <= 0.78) {
+      final kNorm = ((t - 0.26) / 0.52).clamp(0.0, 1.0);
+      final double env = kNorm < 0.32
+          ? (kNorm / 0.32)
+          : (1.0 - ((kNorm - 0.32) / 0.68));
+
+      final warmGlow = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            _flame.withValues(alpha: 0.35 * env),
+            _ember.withValues(alpha: 0.18 * env),
+            Colors.transparent,
+          ],
+        ).createShader(Rect.fromCircle(center: c, radius: r));
+      canvas.drawCircle(c, r, warmGlow);
+
+      final baseY = c.dy + (r * 0.52);
+
+      for (int i = 0; i < 7; i++) {
+        final xNorm = (i - 3) / 3.0;
+        final baseX = c.dx + (xNorm * r * 0.65);
+
+        for (int layer = 0; layer < 3; layer++) {
+          final j = layer;
+          final flick =
+              0.62 + 0.38 * math.sin((t * 22.0) + (i * 1.7) + (j * 6.0));
+          final maxAllowedH = r * 1.02;
+          final layerScale = (3 - layer) / 3.0;
+          final flameH = (r * 0.85 * flick * env * layerScale).clamp(
+            0.0,
+            maxAllowedH,
+          );
+
+          final Color layerColor = layer == 0
+              ? _ember
+              : (layer == 1 ? _flame : _core);
+
+          final tipX = baseX + (math.sin(t * 14 + i) * 4.0);
+          final tipY = baseY - flameH;
+
+          final flamePath = Path();
+          flamePath.moveTo(baseX - (7.0 * layerScale), baseY);
+          flamePath.quadraticBezierTo(
+            baseX - (4.0 * layerScale),
+            baseY - (flameH * 0.5),
+            tipX,
+            tipY,
+          );
+          flamePath.quadraticBezierTo(
+            baseX + (4.0 * layerScale),
+            baseY - (flameH * 0.5),
+            baseX + (7.0 * layerScale),
+            baseY,
+          );
+          flamePath.close();
+
+          final flamePaint = Paint()
+            ..color = layerColor.withValues(alpha: env.clamp(0.0, 1.0))
+            ..maskFilter = MaskFilter.blur(
+              BlurStyle.normal,
+              layer == 0 ? 3 : 1.5,
+            );
+          canvas.drawPath(flamePath, flamePaint);
+        }
+      }
+    }
+
+    // 3. موجة صدم
+    if (t >= 0.44 && t <= 0.92) {
+      final waveT = ((t - 0.44) / 0.48).clamp(0.0, 1.0);
+      final waveProgress = Curves.easeOutCubic.transform(waveT);
+
+      final waveRadius = (r * 0.34) + ((r * 1.29 - r * 0.34) * waveProgress);
+      final waveWidth = (3.0 * (1.0 - waveProgress)).clamp(0.1, 3.0);
+      final waveOpacity = (1.0 - waveProgress).clamp(0.0, 1.0) * 0.75;
+
+      final wavePaint = Paint()
+        ..color = _flame.withValues(alpha: waveOpacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = waveWidth;
+      canvas.drawCircle(c, waveRadius, wavePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant BlazePainter oldDelegate) => oldDelegate.t != t;
 }

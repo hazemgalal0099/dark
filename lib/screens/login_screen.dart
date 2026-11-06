@@ -1,1504 +1,840 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../widgets/crest_header.dart';
+import '../widgets/noir_theme.dart';
+import '../widgets/british_flag.dart';
 
-// ─────────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────────
-const _kBlack = Color(0xFF080808);
-const _kPurple = Color(0xFF7C3AED);
-const _kPurpleDark = Color(0xFF4A1D96);
-const _kPurpleMid = Color(0xFF2D1B69);
-const _kPanelBg = Color(0xFF0D0B14);
-const _kSubText = Color(0xFF5A4A8A);
-const _kDimText = Color(0xFF3A3A4A);
-const _kLineColor = Color(0xFF1A1530);
+class LoginScreen extends StatefulWidget {
+  final VoidCallback onLoginComplete;
 
-// ─────────────────────────────────────────────
-// MAIN WIDGET
-// ─────────────────────────────────────────────
-class JoeXLoginPage extends StatefulWidget {
-  final VoidCallback onComplete;
-
-  const JoeXLoginPage({super.key, required this.onComplete});
+  const LoginScreen({super.key, required this.onLoginComplete});
 
   @override
-  State<JoeXLoginPage> createState() => _JoeXLoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _JoeXLoginPageState extends State<JoeXLoginPage>
-    with TickerProviderStateMixin {
-  // ── Controllers ──────────────────────────────
-  late AnimationController _shakeController;
-  late AnimationController _loginLoadingController;
-  late AnimationController _entryController;
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _enterController;
 
   final TextEditingController _idController = TextEditingController();
-  final TextEditingController _promoController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
+
   final FocusNode _idFocusNode = FocusNode();
-  final FocusNode _promoFocusNode = FocusNode();
+  final FocusNode _codeFocusNode = FocusNode();
 
-  // ── State ─────────────────────────────────────
-  bool _hasPromoError = false;
-  bool _isLoggingIn = false;
-  int _selectedPlatform = 0; // 0: Melbet, 1: Linebet, 2: 1Xbet
-  double _buttonScale = 1.0;
+  int? _selectedPlatformIndex;
+  String? _errorMessage;
+  bool _isSubmitting = false;
 
-  // ── Entry animations ─────────────────────────
-  late Animation<double> _bgFade;
-  late Animation<Offset> _identitySlide;
-  late Animation<double> _identityFade;
-  late Animation<Offset> _panelSlide;
-  late Animation<double> _panelFade;
-
-  // Staggered field & button animations
-  late Animation<double> _field1Fade;
-  late Animation<double> _field2Fade;
-  late Animation<double> _platformFade;
-  late Animation<double> _buttonFade;
+  static const List<Map<String, dynamic>> _platforms = [
+    {
+      'name': 'المنصة الأولى',
+      'asset': 'assets/platform_1.jpg',
+      'badge': 'VIP 1',
+      'bgColor': Color(0xFF261042),
+    },
+    {
+      'name': 'المنصة الثانية',
+      'asset': 'assets/platform_2.jpg',
+      'badge': 'VIP 2',
+      'bgColor': Color(0xFF35175C),
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-
-    _shakeController = AnimationController(
+    _enterController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
+      duration: const Duration(milliseconds: 1100),
     );
 
-    _loginLoadingController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-
-    // Entry animation — 1600ms total
-    _entryController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    );
-
-    // Background fade 0–400ms
-    _bgFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.0, 0.25, curve: Curves.easeOut),
-      ),
-    );
-
-    // Identity section slides down 200–700ms
-    _identitySlide = Tween<Offset>(
-      begin: const Offset(0, -0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _entryController,
-      curve: const Interval(0.12, 0.44, curve: Curves.easeOutCubic),
-    ));
-    _identityFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.12, 0.44, curve: Curves.easeOut),
-      ),
-    );
-
-    // Glass panel slides up 300–900ms
-    _panelSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _entryController,
-      curve: const Interval(0.19, 0.56, curve: Curves.easeOutCubic),
-    ));
-    _panelFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.19, 0.50, curve: Curves.easeOut),
-      ),
-    );
-
-    // Staggered: field1 0.50→0.65, field2 0.60→0.75, platform 0.70→0.85, button 0.80→1.0
-    _field1Fade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.50, 0.68, curve: Curves.easeOut),
-      ),
-    );
-    _field2Fade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.58, 0.76, curve: Curves.easeOut),
-      ),
-    );
-    _platformFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.68, 0.86, curve: Curves.easeOut),
-      ),
-    );
-    _buttonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.78, 1.0, curve: Curves.easeOut),
-      ),
-    );
+    if (isWidgetTest) {
+      _enterController.value = 1.0;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (motionAllowed(context)) {
+            _enterController.forward();
+          } else {
+            _enterController.value = 1.0;
+          }
+        }
+      });
+    }
 
     _idFocusNode.addListener(() => setState(() {}));
-    _promoFocusNode.addListener(() {
-      setState(() {
-        if (_promoFocusNode.hasFocus) _hasPromoError = false;
-      });
-    });
-
-    // Start entry animation
-    _entryController.forward();
+    _codeFocusNode.addListener(() => setState(() {}));
+    _idController.addListener(() => setState(() {}));
+    _codeController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _shakeController.dispose();
-    _loginLoadingController.dispose();
-    _entryController.dispose();
+    _enterController.dispose();
     _idController.dispose();
-    _promoController.dispose();
+    _codeController.dispose();
     _idFocusNode.dispose();
-    _promoFocusNode.dispose();
+    _codeFocusNode.dispose();
     super.dispose();
   }
 
-  // ── Logic ─────────────────────────────────────
-  void _attemptLogin() {
-    if (_isLoggingIn) return;
-    final id = _idController.text.trim();
-    final promo = _promoController.text.trim();
+  Future<void> _handleLogin() async {
+    if (_isSubmitting) return;
 
-    if (id.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text("الرجاء إدخال معرف الحساب ID",
-            textAlign: TextAlign.right),
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.85),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ));
+    setState(() => _errorMessage = null);
+
+    final id = _idController.text.trim();
+    final code = _codeController.text.trim();
+
+    if (_selectedPlatformIndex == null) {
+      setState(() => _errorMessage = 'يرجى اختيار المنصة للمتابعة');
       return;
     }
 
-    setState(() => _isLoggingIn = true);
+    if (id.isEmpty) {
+      setState(() => _errorMessage = 'يرجى إدخال معرف الحساب');
+      return;
+    }
 
-    _loginLoadingController.forward(from: 0.0).then((_) {
-      if (promo == "joe27") {
-        setState(() {
-          _isLoggingIn = false;
-          _hasPromoError = false;
-        });
-        _showSubscriptionDialog();
-      } else {
-        setState(() {
-          _isLoggingIn = false;
-          _hasPromoError = true;
-        });
-        _shakeController.forward(from: 0.0);
-        _showInvalidPromoDialog();
-      }
-    });
+    if (code.isEmpty) {
+      setState(() => _errorMessage = 'يرجى إدخال كود التفعيل');
+      return;
+    }
+
+    if (code.toLowerCase() != 'dark58') {
+      setState(() => _errorMessage = 'كود التفعيل غير صحيح');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_logged_in', true);
+    await prefs.setString('user_id', id);
+    await prefs.setString('app_code', code);
+    await prefs.setString(
+      'selected_platform',
+      _platforms[_selectedPlatformIndex!]['name'] as String,
+    );
+
+    final hasCompletedSubscription =
+        prefs.getBool('has_completed_subscription') ?? false;
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (!hasCompletedSubscription) {
+      _openMandatorySubscriptionDialog();
+    } else {
+      widget.onLoginComplete();
+    }
   }
 
-  // ── Dialogs ────────────────────────────────────
-  void _showInvalidPromoDialog() {
-    String platformName = _selectedPlatform == 0
-        ? "Melbet"
-        : _selectedPlatform == 1
-            ? "Linebet"
-            : "1Xbet";
-
+  void _openMandatorySubscriptionDialog() {
     showGeneralDialog(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: "InvalidPromoDialog",
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.80),
+      transitionDuration: const Duration(milliseconds: 320),
+      pageBuilder: (context, anim1, anim2) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: MandatorySubscriptionDialog(
+            onCompleted: () {
+              Navigator.of(context).pop();
+              widget.onLoginComplete();
+            },
+          ),
+        );
+      },
       transitionBuilder: (context, anim1, anim2, child) {
-        final scale = Tween<double>(begin: 0.95, end: 1.0)
-            .animate(CurvedAnimation(parent: anim1, curve: Curves.easeOut));
-        final opacity =
-            Tween<double>(begin: 0.0, end: 1.0).animate(anim1);
-        return ScaleTransition(
-          scale: scale,
-          child: FadeTransition(
-            opacity: opacity,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.88,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF141418),
-                      border:
-                          Border.all(color: const Color(0xFF2A2A35), width: 1.0),
-                    ),
+        final curve =
+            CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic);
+        return FadeTransition(
+          opacity: curve,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.15),
+              end: Offset.zero,
+            ).animate(curve),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kCoal,
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: NoirCanvas(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const CrestHeader(ringSize: 64),
+              const SizedBox(height: 18),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const Text("ERROR: GATEWAY_BLOCKED",
-                                style: TextStyle(
-                                  fontFamily: 'monospace',
-                                  color: _kPurple,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                )),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.gpp_bad_outlined,
-                                color: _kPurple, size: 16),
-                          ],
+                        // بطاقة تسجيل الدخول
+                        Reveal(
+                          parent: _enterController,
+                          begin: 0.1,
+                          end: 0.8,
+                          child: _buildTicketCard(),
                         ),
-                        const Divider(color: Color(0xFF2A2A35), height: 20),
-                        const SizedBox(height: 8),
-                        const Text(
-                          "البرومو كود المدخل غير نشط حالياً للربط بالخادم الموحد.",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.right,
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF2A2A35)),
-                          ),
-                          child: RichText(
-                            textAlign: TextAlign.right,
-                            text: TextSpan(
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                color: Color(0xFF8E8E93),
-                                fontSize: 11,
-                                height: 1.5,
+                        const SizedBox(height: 22),
+
+                        // شارة الحماية المشفرة السفلية (بدون أي لينكات كما طُلب)
+                        Reveal(
+                          parent: _enterController,
+                          begin: 0.4,
+                          end: 1.0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                              children: [
-                                const TextSpan(
-                                    text:
-                                        "لتفعيل نظام الأمان وفك تشفير إشارات الخانات السليمة، يجب ربط الحساب بالبرومو كود المعتمد:\n\n"),
-                                const TextSpan(
-                                    text: "1️⃣ أنشئ حساباً جديداً تماماً على منصة "),
-                                TextSpan(
-                                    text: "$platformName\n",
-                                    style: const TextStyle(
-                                        color: _kPurple,
-                                        fontWeight: FontWeight.bold)),
-                                const TextSpan(
-                                    text:
-                                        "2️⃣ أدخل كود التفعيل المعتمد أثناء التسجيل: "),
-                                const TextSpan(
-                                    text: "joe27\n\n",
-                                    style: TextStyle(
+                              decoration: BoxDecoration(
+                                color: kGraphite,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: kEdge, width: 1),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.local_fire_department_rounded,
+                                    size: 14,
+                                    color: kOrangePrimary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'جلسة مشفرة — بريطانيا التفاحة 🍎',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: arabic(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13)),
-                                const TextSpan(
-                                    text:
-                                        "⚠️ تنبيه: نظام حماية خادم التشفير يرفض الاتصالات العشوائية ويمنع تزوير الإشارات.",
-                                    style: TextStyle(
-                                        color: Color(0xFF5A5A6E), fontSize: 10)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: const LinearGradient(
-                                colors: [_kPurpleDark, _kPurple],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                "فهمت ✓  سأقوم بالتسجيل بالبرومو كود المعتمد",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 30),
                       ],
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showSubscriptionDialog() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierLabel: "SubscriptionDialog",
-      transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
-      transitionBuilder: (context, anim1, anim2, child) {
-        final scale = Tween<double>(begin: 0.95, end: 1.0)
-            .animate(CurvedAnimation(parent: anim1, curve: Curves.easeOut));
-        final opacity =
-            Tween<double>(begin: 0.0, end: 1.0).animate(anim1);
-        return ScaleTransition(
-          scale: scale,
-          child: FadeTransition(
-            opacity: opacity,
-            child: SubscriptionDialogContent(
-              onComplete: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString(
-                    'user_id', _idController.text.trim());
-                String platformName = _selectedPlatform == 0
-                    ? "Melbet"
-                    : _selectedPlatform == 1
-                        ? "Linebet"
-                        : "1Xbet";
-                await prefs.setString('selected_platform', platformName);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  widget.onComplete();
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ── Social buttons (bottom of panel) ──────────
-  Widget _buildSocialButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required String url,
-  }) {
-    return GestureDetector(
-      onTap: () async {
-        final Uri uri = Uri.parse(url);
-        try {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } catch (_) {}
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: _kPanelBg,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _kPurpleMid.withValues(alpha: 0.5)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 8),
-            Text(label,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────
-  // BUILD
-  // ─────────────────────────────────────────────
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final topSectionHeight = size.height * 0.40;
-    final panelHeight = size.height * 0.65;
-
-    return Scaffold(
-      backgroundColor: _kBlack,
-      resizeToAvoidBottomInset: true,
-      body: AnimatedBuilder(
-        animation: _entryController,
-        builder: (context, _) {
-          return Stack(
-            children: [
-              // ═══════════════════════════════════
-              // LAYER 1 — BACKGROUND
-              // ═══════════════════════════════════
-              FadeTransition(
-                opacity: _bgFade,
-                child: SizedBox.expand(
-                  child: CustomPaint(
-                    painter: _DotGridPainter(),
-                  ),
-                ),
-              ),
-
-              // Geometric circle — top left
-              FadeTransition(
-                opacity: _bgFade,
-                child: Positioned(
-                  top: -120,
-                  left: -120,
-                  child: SizedBox(
-                    width: 300,
-                    height: 300,
-                    child: CustomPaint(
-                      painter: _GeometricCirclePainter(
-                        color: _kPurpleMid.withValues(alpha: 0.30),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Geometric circle — bottom right
-              FadeTransition(
-                opacity: _bgFade,
-                child: Positioned(
-                  bottom: -120,
-                  right: -120,
-                  child: SizedBox(
-                    width: 300,
-                    height: 300,
-                    child: CustomPaint(
-                      painter: _GeometricCirclePainter(
-                        color: _kPurpleMid.withValues(alpha: 0.30),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ═══════════════════════════════════
-              // LAYER 2 — TOP IDENTITY SECTION
-              // ═══════════════════════════════════
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: topSectionHeight,
-                child: SlideTransition(
-                  position: _identitySlide,
-                  child: FadeTransition(
-                    opacity: _identityFade,
-                    child: SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Left: purple bar + text stack
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // 3px purple vertical bar
-                                  Container(
-                                    width: 3,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      color: _kPurple,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // Text stack
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // AUTHORIZED ACCESS ONLY
-                                      const Text(
-                                        "منطقة دخول مصرح بها فقط",
-                                        style: TextStyle(
-                                          fontFamily: 'sans-serif',
-                                          fontSize: 9,
-                                          color: Color(0xFF3D2F6E),
-                                          letterSpacing: 1.5,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      // JoeX + Apple
-                                      RichText(
-                                        text: const TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: "JoeX",
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                            TextSpan(
-                                              text: " Apple",
-                                              style:
-                                                  TextStyle(color: _kPurple),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      // DECRYPTION PORTAL
-                                      const Text(
-                                        "بوابة فك التشفير الرقمي",
-                                        style: TextStyle(
-                                          fontFamily: 'sans-serif',
-                                          fontSize: 10,
-                                          color: _kSubText,
-                                          letterSpacing: 1,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Right: Logo with L-brackets
-                            SizedBox(
-                              width: 80,
-                              height: 80,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  // Circular logo
-                                  Container(
-                                    width: 56,
-                                    height: 56,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: _kPurple, width: 1.5),
-                                    ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        "assets/app_logo.png",
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  // L-shaped corner brackets
-                                  CustomPaint(
-                                    size: const Size(80, 80),
-                                    painter: _CornerBracketsPainter(
-                                      color: _kPurple,
-                                      strokeWidth: 1.5,
-                                      armLength: 12.0,
-                                      padding: 4.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ═══════════════════════════════════
-              // LAYER 3 — BOTTOM GLASS PANEL
-              // ═══════════════════════════════════
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: panelHeight,
-                child: SlideTransition(
-                  position: _panelSlide,
-                  child: FadeTransition(
-                    opacity: _panelFade,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(28),
-                        topRight: Radius.circular(28),
-                      ),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: _kPanelBg,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(28),
-                              topRight: Radius.circular(28),
-                            ),
-                            border: Border(
-                              top: BorderSide(
-                                  color: _kPurpleMid, width: 1.0),
-                            ),
-                          ),
-                          child: SingleChildScrollView(
-                            padding: EdgeInsets.only(
-                              left: 24,
-                              right: 24,
-                              top: 0,
-                              bottom:
-                                  MediaQuery.of(context).viewInsets.bottom +
-                                      24,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // ── Drag indicator ────────────────
-                                const SizedBox(height: 16),
-                                Center(
-                                  child: Container(
-                                    width: 40,
-                                    height: 3,
-                                    decoration: BoxDecoration(
-                                      color: _kPurple,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-
-                                // ── OPERATOR CREDENTIALS label ─────
-                                const Text(
-                                  "بيانات اعتماد المشغل",
-                                  style: TextStyle(
-                                    fontFamily: 'sans-serif',
-                                    fontSize: 10,
-                                    color: _kSubText,
-                                    letterSpacing: 1,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-
-                                // ── Field 1: ID ───────────────────
-                                FadeTransition(
-                                  opacity: _field1Fade,
-                                  child: _buildUnderlineField(
-                                    label: "[ معرف الحساب - ID ]",
-                                    controller: _idController,
-                                    focusNode: _idFocusNode,
-                                    hintText: "أدخل معرف الحساب",
-                                    prefixIcon: Icons.account_box_outlined,
-                                    hasError: false,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 4),
-                                // Divider between fields
-                                Container(
-                                    height: 0.5,
-                                    color: _kLineColor),
-                                const SizedBox(height: 4),
-
-                                // ── Field 2: PROMO ────────────────
-                                FadeTransition(
-                                  opacity: _field2Fade,
-                                  child: ShakeWidget(
-                                    controller: _shakeController,
-                                    child: _buildUnderlineField(
-                                      label: "[ كود التفعيل - PROMO ]",
-                                      controller: _promoController,
-                                      focusNode: _promoFocusNode,
-                                      hintText: "أدخل كود التفعيل",
-                                      prefixIcon: Icons.vpn_key_outlined,
-                                      hasError: _hasPromoError,
-                                    ),
-                                  ),
-                                ),
-
-                                if (_hasPromoError)
-                                  const Padding(
-                                    padding:
-                                        EdgeInsets.only(top: 6.0, right: 8.0),
-                                    child: Text(
-                                      "خطأ: البرومو كود غير صالح!",
-                                      style: TextStyle(
-                                          color: Colors.redAccent,
-                                          fontSize: 11),
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  ),
-
-                                const SizedBox(height: 28),
-
-                                // ── Platform Selector ──────────────
-                                FadeTransition(
-                                  opacity: _platformFade,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      // Label above platforms
-                                      const Padding(
-                                        padding: EdgeInsets.only(bottom: 10),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              "يجب اختيار المنصة",
-                                              style: TextStyle(
-                                                color: _kPurple,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              textAlign: TextAlign.right,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Icon(Icons.info_outline, color: _kPurple, size: 13),
-                                          ],
-                                        ),
-                                      ),
-                                      _buildPlatformSelector(),
-                                    ],
-                                  ),
-                                ),
-
-                                const SizedBox(height: 28),
-
-                                // ── Decrypt Button ─────────────────
-                                FadeTransition(
-                                  opacity: _buttonFade,
-                                  child: Center(
-                                    child: GestureDetector(
-                                      onTapDown: (_) => setState(
-                                          () => _buttonScale = 0.97),
-                                      onTapUp: (_) =>
-                                          setState(() => _buttonScale = 1.0),
-                                      onTapCancel: () =>
-                                          setState(() => _buttonScale = 1.0),
-                                      onTap: _attemptLogin,
-                                      child: AnimatedScale(
-                                        scale: _buttonScale,
-                                        duration:
-                                            const Duration(milliseconds: 100),
-                                        child: _buildDecryptButton(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 28),
-
-                                // ── Social Buttons ─────────────────
-                                FadeTransition(
-                                  opacity: _buttonFade,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                    children: [
-                                      _buildSocialButton(
-                                        label: "قناة التليجرام",
-                                        icon: Icons.send,
-                                        color: const Color(0xFF229ED9),
-                                        url: "https://t.me/elostora_vip",
-                                      ),
-                                      const SizedBox(width: 16),
-                                      _buildSocialButton(
-                                        label: "قناة اليوتيوب",
-                                        icon: Icons.play_circle_fill,
-                                        color: const Color(0xFFFF0000),
-                                        url:
-                                            "https://youtube.com/@sir_joex1",
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
-  // ── Underline-only Input Field ─────────────────
-  Widget _buildUnderlineField({
-    required String label,
+  Widget _buildTicketCard() {
+    return TicketCard(
+      notchAt: 86,
+      header: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const BritishFlagInline(size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'بريطانيا التفاحة',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: arabic(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const BritishFlagInline(size: 22),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Britain Apple — DARK',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: latin(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: kOrangeLight,
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. اختر المنصة التابعة لك
+          RailStep(
+            stepNumber: 1,
+            isCompleted: _selectedPlatformIndex != null,
+            title: 'اختر المنصة التابعة لك',
+            content: _buildPlatformSelector(),
+          ),
+
+          // 2. معرف الحساب
+          RailStep(
+            stepNumber: 2,
+            isCompleted: _idController.text.trim().isNotEmpty,
+            title: 'معرف الحساب',
+            content: _buildInputField(
+              controller: _idController,
+              focusNode: _idFocusNode,
+              icon: Icons.badge_outlined,
+              label: 'معرف الحساب',
+              hint: '1234567',
+              keyboardType: TextInputType.number,
+            ),
+          ),
+
+          // 3. كود التفعيل
+          RailStep(
+            stepNumber: 3,
+            isCompleted: _codeController.text.trim().isNotEmpty,
+            isLast: true,
+            title: 'كود التفعيل',
+            content: _buildInputField(
+              controller: _codeController,
+              focusNode: _codeFocusNode,
+              icon: Icons.vpn_key_outlined,
+              label: 'كود التفعيل',
+              hint: 'dark58',
+              keyboardType: TextInputType.text,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // رسالة الخطأ إن وجدت
+          if (_errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(
+                color: kAlert.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: kAlert.withValues(alpha: 0.40),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 18, color: kAlert),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: arabic(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: kAlert,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          // زر الدخول الناري الفاخر
+          WineButton(
+            text: _isSubmitting ? 'جاري التحقق...' : 'بدء تشغيل بريطانيا التفاحة',
+            icon: Icons.bolt_rounded,
+            onPressed: _isSubmitting ? null : _handleLogin,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlatformSelector() {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: kGraphite,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: kEdge, width: 1),
+      ),
+      child: Row(
+        children: List.generate(_platforms.length, (index) {
+          final p = _platforms[index];
+          final isSelected = _selectedPlatformIndex == index;
+          final Color bgColor = p['bgColor'] as Color;
+          final String asset = p['asset'] as String;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() {
+                _selectedPlatformIndex = index;
+                _errorMessage = null;
+              }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: isSelected ? kSteelHi : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isSelected ? kOrangePrimary : Colors.transparent,
+                    width: 1.6,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: kOrangePrimary.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        color: bgColor,
+                        child: AspectRatio(
+                          aspectRatio: 1.45,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                asset,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => Center(
+                                  child: Text(
+                                    p['badge'] as String,
+                                    style: latin(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (!isSelected)
+                                ColoredBox(
+                                  color: kCoal.withValues(alpha: 0.40),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: isSelected ? kFlameGradient : null,
+                        color: isSelected ? null : kGraphite,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : kEdgeHi,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Center(
+                              child: Icon(
+                                Icons.check,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
     required TextEditingController controller,
     required FocusNode focusNode,
-    required String hintText,
-    required IconData prefixIcon,
-    required bool hasError,
+    required IconData icon,
+    required String label,
+    required String hint,
+    required TextInputType keyboardType,
   }) {
-    final isFocused = focusNode.hasFocus;
-    final lineColor = hasError
-        ? Colors.redAccent
-        : isFocused
-            ? _kPurple
-            : _kPurpleMid;
+    final bool hasFocus = focusNode.hasFocus;
+    final bool isFilled = controller.text.trim().isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label above field
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 9,
-            color: _kPurple,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            // Prefix icon
-            Icon(prefixIcon, color: _kPurple, size: 18),
-            const SizedBox(width: 10),
-            // Input
-            Expanded(
-              child: TextField(
-                controller: controller,
-                focusNode: focusNode,
-                textDirection: TextDirection.rtl,
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  color: hasError ? Colors.redAccent : Colors.white,
-                  fontSize: 15,
-                ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 10),
-                  hintText: hintText,
-                  hintStyle: const TextStyle(
-                    color: _kDimText,
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                ),
-              ),
-            ),
-          ],
-        ),
-        // Bottom underline only
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: 1,
-          color: lineColor,
-        ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
-
-  // ── Platform Selector (horizontal row) ────────
-  Widget _buildPlatformSelector() {
-    final platforms = [
-      {"index": 0, "name": "ميلبيت", "image": "assets/platform_melbet.png"},
-      {"index": 2, "name": "1إكس بت", "image": "assets/platform_1xbet.png"},
-      {"index": 1, "name": "لاين بت", "image": "assets/platform_linebet.png"},
-    ];
-
-    return Row(
-      children: List.generate(platforms.length, (index) {
-        final p = platforms[index];
-        final idx = p["index"] as int;
-        final isSelected = _selectedPlatform == idx;
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: index == 0 ? 0 : 4,
-              right: index == platforms.length - 1 ? 0 : 4,
-            ),
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedPlatform = idx),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: isSelected ? 1.0 : 0.45,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  height: 40, // Small and sleek height as requested
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected ? _kPurple : const Color(0xFF1E1E28),
-                      width: isSelected ? 2.0 : 1.0,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: _kPurple.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            )
-                          ]
-                        : [],
-                    image: DecorationImage(
-                      image: AssetImage(p["image"] as String),
-                      fit: BoxFit.fill, // Fill entire container X and Y — no empty space
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  // ── Decrypt Button ─────────────────────────────
-  Widget _buildDecryptButton() {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
+        color: hasFocus ? kSteelHi : kGraphite,
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          colors: [_kPurpleDark, _kPurple],
-          begin: Alignment(0.0, -1.0),
-          end: Alignment(1.0, 1.0),
+        border: Border.all(
+          color: hasFocus ? kOrangePrimary : kEdge,
+          width: hasFocus ? 1.6 : 1.0,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: _kPurple.withValues(alpha: 0.30),
-            blurRadius: 24,
-            spreadRadius: 2,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: hasFocus
+            ? [
+                BoxShadow(
+                  color: kOrangePrimary.withValues(alpha: 0.25),
+                  blurRadius: 14,
+                ),
+              ]
+            : null,
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Arrow icon on the right
-          Positioned(
-            right: 20,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Icon(
-                Icons.arrow_forward,
-                color: Colors.white.withValues(alpha: 0.60),
-                size: 20,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: hasFocus ? kOrangePrimary : kMute,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: arabic(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: hasFocus ? Colors.white : kAsh,
+                    ),
+                  ),
+                ],
+              ),
+              if (isFilled)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 15,
+                  color: kOrangePrimary,
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              keyboardType: keyboardType,
+              cursorColor: kOrangePrimary,
+              style: latin(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: kChalk,
+                letterSpacing: 1.2,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                border: InputBorder.none,
+                hintText: hint,
+                hintStyle: latin(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: kMute,
+                ),
               ),
             ),
           ),
-          // Text in the center
-          Center(
-            child: _isLoggingIn
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        "...جاري التحقق",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.0,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "بدء فك التشفير",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "[ فك التشفير ]",
-                        style: TextStyle(
-                          fontFamily: 'sans-serif',
-                          fontSize: 9,
-                          color: Colors.white.withValues(alpha: 0.50),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// SHAKE WIDGET
-// ─────────────────────────────────────────────
-class ShakeWidget extends StatefulWidget {
-  final Widget child;
-  final AnimationController controller;
+// ==========================================
+// MandatorySubscriptionDialog — نافذة الاشتراك الإجباري
+// ==========================================
+class MandatorySubscriptionDialog extends StatefulWidget {
+  final VoidCallback onCompleted;
 
-  const ShakeWidget(
-      {super.key, required this.child, required this.controller});
-
-  @override
-  State<ShakeWidget> createState() => _ShakeWidgetState();
-}
-
-class _ShakeWidgetState extends State<ShakeWidget> {
-  late Animation<double> _offsetAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _offsetAnimation = Tween<double>(begin: 0.0, end: 24.0)
-        .chain(CurveTween(curve: Curves.elasticIn))
-        .animate(widget.controller)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) widget.controller.reset();
-      });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _offsetAnimation,
-      builder: (context, child) {
-        final double offset =
-            math.sin(_offsetAnimation.value * math.pi * 3) * 6;
-        return Transform.translate(offset: Offset(offset, 0), child: child);
-      },
-      child: widget.child,
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// CUSTOM PAINTERS
-// ─────────────────────────────────────────────
-
-/// Dot grid background — 2px dots every 28px
-class _DotGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF1A1530)
-      ..style = PaintingStyle.fill;
-
-    const double spacing = 28.0;
-    const double dotRadius = 1.0;
-    for (double y = 0; y < size.height; y += spacing) {
-      for (double x = 0; x < size.width; x += spacing) {
-        canvas.drawCircle(Offset(x, y), dotRadius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DotGridPainter oldDelegate) => false;
-}
-
-/// Large partial circle (stroke only) for geometric decoration
-class _GeometricCirclePainter extends CustomPainter {
-  final Color color;
-  _GeometricCirclePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    canvas.drawCircle(center, size.width / 2, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GeometricCirclePainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-/// L-shaped corner brackets (same as splash screen)
-class _CornerBracketsPainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-  final double armLength;
-  final double padding;
-
-  _CornerBracketsPainter({
-    required this.color,
-    required this.strokeWidth,
-    required this.armLength,
-    required this.padding,
+  const MandatorySubscriptionDialog({
+    super.key,
+    required this.onCompleted,
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final double l = padding;
-    final double t = padding;
-    final double r = size.width - padding;
-    final double b = size.height - padding;
-
-    // Top-left
-    canvas.drawLine(Offset(l, t), Offset(l + armLength, t), paint);
-    canvas.drawLine(Offset(l, t), Offset(l, t + armLength), paint);
-    // Top-right
-    canvas.drawLine(Offset(r, t), Offset(r - armLength, t), paint);
-    canvas.drawLine(Offset(r, t), Offset(r, t + armLength), paint);
-    // Bottom-left
-    canvas.drawLine(Offset(l, b), Offset(l + armLength, b), paint);
-    canvas.drawLine(Offset(l, b), Offset(l, b - armLength), paint);
-    // Bottom-right
-    canvas.drawLine(Offset(r, b), Offset(r - armLength, b), paint);
-    canvas.drawLine(Offset(r, b), Offset(r, b - armLength), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CornerBracketsPainter old) =>
-      old.color != color || old.armLength != armLength;
+  State<MandatorySubscriptionDialog> createState() =>
+      _MandatorySubscriptionDialogState();
 }
 
-// ─────────────────────────────────────────────
-// SUBSCRIPTION DIALOG (unchanged logic)
-// ─────────────────────────────────────────────
-class SubscriptionDialogContent extends StatefulWidget {
-  final VoidCallback onComplete;
+class _MandatorySubscriptionDialogState
+    extends State<MandatorySubscriptionDialog> {
+  bool _clickedYtDark = false;
+  bool _clickedTgMatches = false;
+  bool _clickedTgDark = false;
+  String? _dialogError;
 
-  const SubscriptionDialogContent({super.key, required this.onComplete});
-
-  @override
-  State<SubscriptionDialogContent> createState() =>
-      _SubscriptionDialogContentState();
-}
-
-class _SubscriptionDialogContentState
-    extends State<SubscriptionDialogContent> {
-  bool _telegramSubscribed = false;
-  bool _telegramMtcSubscribed = false;
-  bool _youtubeSubscribed = false;
-
-  bool _isTelegramLoading = false;
-  bool _isTelegramMtcLoading = false;
-  bool _isYoutubeLoading = false;
-
-  double _telegramProgress = 0.0;
-  double _telegramMtcProgress = 0.0;
-  double _youtubeProgress = 0.0;
-
-  Timer? _telegramTimer;
-  Timer? _telegramMtcTimer;
-  Timer? _youtubeTimer;
-
-  final List<String> _handshakeLogs = [
-    "[نظام] محرك فك تشفير VIP في وضع الاستعداد...",
-    "[نظام] في انتظار التحقق من تفعيل الرمز الموحد...",
-  ];
-
-  final ScrollController _scrollController = ScrollController();
-
-  void _addLog(String msg) {
-    if (!mounted) return;
-    setState(() => _handshakeLogs.add(msg));
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+  int get _doneCount {
+    int c = 0;
+    if (_clickedYtDark) c++;
+    if (_clickedTgMatches) c++;
+    if (_clickedTgDark) c++;
+    return c;
   }
 
-  void _subscribeTelegram() async {
-    if (_telegramSubscribed || _isTelegramLoading) return;
-    final Uri url = Uri.parse("https://t.me/elostora_vip");
+  Future<void> _launchUrl(String url) async {
     try {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {}
+  }
+
+  void _onYtDarkClick() {
+    _launchUrl('https://t.me/drk9_9');
     setState(() {
-      _isTelegramLoading = true;
-      _telegramProgress = 0.0;
-    });
-    _addLog("[نظام] التحقق من قناة التليجرام: t.me/elostora_vip...");
-    int step = 0;
-    _telegramTimer =
-        Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      setState(() {
-        _telegramProgress += 0.2;
-        if (_telegramProgress >= 1.0) {
-          _telegramProgress = 1.0;
-          _telegramSubscribed = true;
-          _isTelegramLoading = false;
-          _telegramTimer?.cancel();
-          _addLog("[ناجح] تم التحقق من رمز تخطي التليجرام بنجاح.");
-        } else {
-          step++;
-          if (step == 1) {
-            _addLog("[أمان] قراءة توقيع تسجيل المستخدم الفريد...");
-          } else if (step == 2) {
-            _addLog("[اتصال] مزامنة حزمة البيانات مع خادم المصادقة...");
-          }
-        }
-      });
+      _clickedYtDark = true;
+      _dialogError = null;
     });
   }
 
-  void _subscribeTelegramMtc() async {
-    if (_telegramMtcSubscribed || _isTelegramMtcLoading) return;
-    final Uri url = Uri.parse("https://t.me/drk_mtc");
-    try {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } catch (_) {}
+  void _onTgMatchesClick() {
+    _launchUrl('https://t.me/stark_Matches');
     setState(() {
-      _isTelegramMtcLoading = true;
-      _telegramMtcProgress = 0.0;
-    });
-    _addLog("[نظام] التحقق من قناة التليجرام: t.me/drk_mtc...");
-    int step = 0;
-    _telegramMtcTimer =
-        Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      setState(() {
-        _telegramMtcProgress += 0.2;
-        if (_telegramMtcProgress >= 1.0) {
-          _telegramMtcProgress = 1.0;
-          _telegramMtcSubscribed = true;
-          _isTelegramMtcLoading = false;
-          _telegramMtcTimer?.cancel();
-          _addLog("[ناجح] تم التحقق من رمز تخطي التليجرام @drk_mtc بنجاح.");
-        } else {
-          step++;
-          if (step == 1) {
-            _addLog("[أمان] قراءة توقيع تسجيل المستخدم الفريد...");
-          } else if (step == 2) {
-            _addLog("[اتصال] مزامنة حزمة البيانات مع خادم المصادقة...");
-          }
-        }
-      });
+      _clickedTgMatches = true;
+      _dialogError = null;
     });
   }
 
-  void _subscribeYoutube() async {
-    if (_youtubeSubscribed || _isYoutubeLoading) return;
-    final Uri url = Uri.parse("https://youtube.com/@sir_joex1");
-    try {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } catch (_) {}
+  void _onTgDarkClick() {
+    _launchUrl('https://t.me/drk9_9');
     setState(() {
-      _isYoutubeLoading = true;
-      _youtubeProgress = 0.0;
-    });
-    _addLog("[نظام] التحقق من قناة المشتركين على يوتيوب...");
-    int step = 0;
-    _youtubeTimer =
-        Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      setState(() {
-        _youtubeProgress += 0.2;
-        if (_youtubeProgress >= 1.0) {
-          _youtubeProgress = 1.0;
-          _youtubeSubscribed = true;
-          _isYoutubeLoading = false;
-          _youtubeTimer?.cancel();
-          _addLog("[ناجح] تم التحقق من رمز يوتيوب بنجاح.");
-        } else {
-          step++;
-          if (step == 1) {
-            _addLog("[أمان] فحص سجلات المشتركين على يوتيوب...");
-          } else if (step == 2) {
-            _addLog("[اتصال] مطابقة المفاتيح مع الخادم الرئيسي للتحقق...");
-          }
-        }
-      });
+      _clickedTgDark = true;
+      _dialogError = null;
     });
   }
 
-  @override
-  void dispose() {
-    _telegramTimer?.cancel();
-    _telegramMtcTimer?.cancel();
-    _youtubeTimer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
+  Future<void> _onVerifyAndProceed() async {
+    if (_doneCount < 3) {
+      setState(() {
+        _dialogError = 'يرجى إكمال جميع الشروط الـ 3 أولاً للمتابعة';
+      });
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_subscription', true);
+
+    widget.onCompleted();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool validationPassed =
-        _telegramSubscribed && _telegramMtcSubscribed && _youtubeSubscribed;
+    final allDone = _doneCount == 3;
 
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 390),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: const Color(0xFF141418),
-              border:
-                  Border.all(color: const Color(0xFF2A2A35), width: 1.0),
+              gradient: kGlassGradient,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: allDone ? Colors.white : kEdge,
+                width: 1.4,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.80),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+                if (allDone)
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    blurRadius: 20,
+                  ),
+              ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Text(
-                      "تفعيل الترخيص الرقمي (إلزامي)",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: _kPurple,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: allDone ? kSilverGradient : null,
+                        color: allDone ? null : kSteelHi,
+                        border: Border.all(
+                          color: allDone ? Colors.white : kEdgeHi,
+                          width: 1.4,
+                        ),
+                        boxShadow: allDone
+                            ? [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.40),
+                                  blurRadius: 16,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        allDone
+                            ? Icons.verified_rounded
+                            : Icons.local_fire_department_rounded,
+                        color: allDone ? Colors.white : kOrangePrimary,
+                        size: 28,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.vpn_lock_outlined,
-                        color: _kPurple, size: 20),
-                  ],
-                ),
-                const Divider(
-                    color: Color(0xFF2A2A35), height: 20, thickness: 1.0),
-                const Text(
-                  "لكي تتمكن من الدخول واستخدام السيرفر، يرجى إتمام المهام التالية بالترتيب لتفعيل حسابك الموحد:",
-                  style: TextStyle(color: Color(0xFF8E8E93), fontSize: 12),
-                  textAlign: TextAlign.right,
-                ),
-                const SizedBox(height: 16),
-                _buildTaskCard(
-                  icon: Icons.telegram_outlined,
-                  title: "اشترك بقناة التليجرام الرسمية",
-                  subtitle: "t.me/elostora_vip",
-                  progress: _telegramProgress,
-                  isLoading: _isTelegramLoading,
-                  isCompleted: _telegramSubscribed,
-                  onTap: _subscribeTelegram,
-                ),
-                const SizedBox(height: 10),
-                _buildTaskCard(
-                  icon: Icons.telegram_outlined,
-                  title: "اشترك بقناة التليجرام الاحتياطية",
-                  subtitle: "t.me/drk_mtc",
-                  progress: _telegramMtcProgress,
-                  isLoading: _isTelegramMtcLoading,
-                  isCompleted: _telegramMtcSubscribed,
-                  onTap: _subscribeTelegramMtc,
-                ),
-                const SizedBox(height: 10),
-                _buildTaskCard(
-                  icon: Icons.play_circle_outline,
-                  title: "اشترك بقناتنا على اليوتيوب",
-                  subtitle: "Sir JoeX YouTube Channel",
-                  progress: _youtubeProgress,
-                  isLoading: _isYoutubeLoading,
-                  isCompleted: _youtubeSubscribed,
-                  onTap: _subscribeYoutube,
-                ),
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A0A0A),
-                      border: Border.all(color: const Color(0xFF2A2A35)),
-                    ),
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _handshakeLogs.length,
-                      itemBuilder: (context, index) {
-                        return Text(
-                          _handshakeLogs[index],
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            color: Color(0xFF5A5A6E),
-                            fontSize: 9.0,
-                          ),
-                        );
-                      },
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const BritishFlagInline(size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'صفحاتنا',
+                        textAlign: TextAlign.center,
+                        style: arabic(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const BritishFlagInline(size: 18),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'انضم إلى صفحاتنا الرسمية للمتابعة وتفعيل الأداة',
+                    textAlign: TextAlign.center,
+                    style: arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: kAsh,
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: validationPassed ? widget.onComplete : null,
-                  child: Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: validationPassed
-                          ? const LinearGradient(
-                              colors: [_kPurpleDark, _kPurple],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            )
-                          : null,
-                      color: validationPassed ? null : const Color(0xFF141418),
-                      border: validationPassed
-                          ? null
-                          : Border.all(color: const Color(0xFF2A2A35)),
-                    ),
-                    child: Center(
+                  const SizedBox(height: 14),
+
+                  StepMeter(total: 3, current: _doneCount),
+                  const SizedBox(height: 18),
+
+                  // 1. الصفحة الرسمية الأولى (مموهة/بلور بدون إظهار اسم القناة)
+                  _buildSubRow(
+                    title: 'الصفحة الرسمية الأولى',
+                    handle: 'اضغط هنا لفتح الرابط والانضمام',
+                    icon: Icons.link_rounded,
+                    color: kOrangePrimary,
+                    isDone: _clickedYtDark,
+                    btnText: _clickedYtDark ? 'تم الانضمام' : 'انضمام',
+                    onTap: _onYtDarkClick,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 2. صفحة التحديثات والمتابعة (مموهة/بلور بدون إظهار اسم القناة)
+                  _buildSubRow(
+                    title: 'صفحة التحديثات والمتابعة',
+                    handle: 'اضغط هنا لفتح الرابط والانضمام',
+                    icon: Icons.notifications_active_rounded,
+                    color: kOrangeLight,
+                    isDone: _clickedTgMatches,
+                    btnText: _clickedTgMatches ? 'تم الانضمام' : 'انضمام',
+                    onTap: _onTgMatchesClick,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 3. قناة المجتمع والدعم (مموهة/بلور بدون إظهار اسم القناة)
+                  _buildSubRow(
+                    title: 'قناة المجتمع والدعم',
+                    handle: 'اضغط هنا لفتح الرابط والانضمام',
+                    icon: Icons.verified_rounded,
+                    color: const Color(0xFF9C6FDE),
+                    isDone: _clickedTgDark,
+                    btnText: _clickedTgDark ? 'تم الانضمام' : 'انضمام',
+                    onTap: _onTgDarkClick,
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_dialogError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: kAlert.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: kAlert.withValues(alpha: 0.40),
+                          width: 1,
+                        ),
+                      ),
                       child: Text(
-                        "تحقق من التفعيل والدخول [OK]",
-                        style: TextStyle(
-                          color: validationPassed
-                              ? Colors.white
-                              : const Color(0xFF5A5A6E),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                        _dialogError!,
+                        textAlign: TextAlign.center,
+                        style: arabic(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: kAlert,
                         ),
                       ),
                     ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  WineButton(
+                    text: 'تحقق ومتابعة',
+                    icon: Icons.check_circle_rounded,
+                    onPressed: _onVerifyAndProceed,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1506,64 +842,110 @@ class _SubscriptionDialogContentState
     );
   }
 
-  Widget _buildTaskCard({
-    required IconData icon,
+  Widget _buildSubRow({
     required String title,
-    required String subtitle,
-    required double progress,
-    required bool isLoading,
-    required bool isCompleted,
+    required String handle,
+    required IconData icon,
+    required Color color,
+    required bool isDone,
+    required String btnText,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0A0A0A),
-            border: Border.all(
-              color: isCompleted ? _kPurple : const Color(0xFF2A2A35),
-              width: 1.0,
-            ),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: kGraphite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDone ? Colors.white.withValues(alpha: 0.50) : kEdge,
+            width: 1,
           ),
-          child: Row(
-            children: [
-              if (isCompleted)
-                const Icon(Icons.check_circle, color: _kPurple, size: 22)
-              else if (isLoading)
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.0,
-                    value: progress,
-                    valueColor: const AlwaysStoppedAnimation<Color>(_kPurple),
-                  ),
-                )
-              else
-                const Icon(Icons.arrow_back_ios_new,
-                    color: Color(0xFF5A5A6E), size: 12),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 3),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: Color(0xFF5A5A6E), fontSize: 9.0)),
-                ],
+          boxShadow: [
+            if (isDone)
+              BoxShadow(
+                color: kOrangePrimary.withValues(alpha: 0.20),
+                blurRadius: 10,
               ),
-              const SizedBox(width: 12),
-              Icon(icon, color: _kPurple, size: 24),
-            ],
-          ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.20),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.40),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, color: color, size: 17),
+            ),
+            const SizedBox(width: 10),
+
+            // بلور على النصوص بدون إظهار اسم القناة
+            Expanded(
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 4.5, sigmaY: 4.5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: arabic(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: kChalk,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      handle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: arabic(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w500,
+                        color: kAsh,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: isDone ? kSilverGradient : null,
+                color: isDone ? null : kSteelHi,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDone ? Colors.white : kEdgeHi,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                btnText,
+                style: arabic(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDone ? kOnSilver : kChalk,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
