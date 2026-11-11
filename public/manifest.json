@@ -1,11 +1,11 @@
 {
-    "name": "بريطانيا التفاحة",
-    "short_name": "بريطانيا التفاحة",
+    "name": "DARK V4",
+    "short_name": "DARK V4",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#1A0A2E",
-    "theme_color": "#7C4DC8",
-    "description": "بريطانيا التفاحة",
+    "background_color": "#080C06",
+    "theme_color": "#3A5020",
+    "description": "DARK V4 - THE BEST DARK",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

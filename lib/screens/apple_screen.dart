@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/crest_header.dart';
 import '../widgets/noir_theme.dart';
-import '../widgets/british_flag.dart';
 
 class DarkApplePage extends StatefulWidget {
   final VoidCallback? onLogout;
@@ -211,7 +210,7 @@ class _DarkApplePageState extends State<DarkApplePage>
                     child: Opacity(
                       opacity: 0.045,
                       child: Text(
-                        'BRITAIN APPLE',
+                        'DARK V4',
                         style: brand(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
@@ -237,11 +236,15 @@ class _DarkApplePageState extends State<DarkApplePage>
                             child: Row(
                               children: [
                                 const Text(
-                                  '🍎',
+                                  '🔥',
                                   style: TextStyle(fontSize: 16),
                                 ),
                                 const SizedBox(width: 6),
-                                const BritishFlagInline(size: 15),
+                                const Icon(
+                                  Icons.local_fire_department_rounded,
+                                  size: 15,
+                                  color: Colors.amberAccent,
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Column(
@@ -414,7 +417,7 @@ class _DarkApplePageState extends State<DarkApplePage>
                 decoration: BoxDecoration(
                   color: current
                       ? kSteelHi
-                      : (revealed ? const Color(0xFF24103A) : kGraphite),
+                      : (revealed ? const Color(0xFF0A1A06) : kGraphite),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: current
@@ -680,8 +683,8 @@ class BlazePainter extends CustomPainter {
   final double t; // 0.0 -> 1.0
 
   static const Color _core = Color(0xFFFFFFFF);
-  static const Color _flame = Color(0xFFB39DDB); // Soft lavender
-  static const Color _ember = Color(0xFF7C4DC8); // Purple
+  static const Color _flame = Color(0xFF7A9A3A); // Olive green
+  static const Color _ember = Color(0xFF3A5020); // Deep olive
 
   const BlazePainter({required this.t});
 

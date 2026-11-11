@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/apple_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/splash_screen_v3.dart';
 import 'widgets/network_wrapper.dart';
 import 'widgets/noir_theme.dart';
 
@@ -10,7 +9,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-enum _Screen { splash, login, app }
+enum _Screen { login, app }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -20,12 +19,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  _Screen _screen = _Screen.splash;
-
-  Future<void> _onSplashComplete() async {
-    if (!mounted) return;
-    setState(() => _screen = _Screen.login);
-  }
+  _Screen _screen = _Screen.login;
 
   void _onLoginComplete() {
     if (!mounted) return;
@@ -39,8 +33,6 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildCurrentScreen() {
     switch (_screen) {
-      case _Screen.splash:
-      return SplashScreenV3(onComplete: _onSplashComplete);
       case _Screen.login:
         return LoginScreen(onLoginComplete: _onLoginComplete);
       case _Screen.app:
@@ -51,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Britain Apple',
+      title: 'DARK V4',
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       theme: ThemeData(

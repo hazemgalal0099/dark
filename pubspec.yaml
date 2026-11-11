@@ -1,5 +1,5 @@
 name: darktools
-description: "Britain Apple - Apple Script"
+description: "DARK V4 - Apple Script"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -55,7 +55,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo_uk.png"
+  image_path: "assets/logo_dark_v4.png"
   remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
@@ -77,6 +77,11 @@ flutter:
     - assets/logo_uk.png
     - assets/banner_uk.jpg
     - assets/wallpaper_uk.jpg
+    - assets/logo_dark_v4.png
+    - assets/banner_dark_v4.jpg
+    - assets/wallpaper_dark_v4.jpg
+    - assets/banner2_dark_v4.jpg
+    - assets/wallpaper2_dark_v4.jpg
     - assets/page_bg.jpg
     - assets/platform_1.jpg
     - assets/platform_2.jpg

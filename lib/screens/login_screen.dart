@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/crest_header.dart';
 import '../widgets/noir_theme.dart';
-import '../widgets/british_flag.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginComplete;
@@ -34,14 +33,14 @@ class _LoginScreenState extends State<LoginScreen>
     {
       'name': 'المنصة الأولى',
       'asset': 'assets/platform_1.jpg',
-      'badge': 'VIP 1',
-      'bgColor': Color(0xFF261042),
+      'badge': 'PRO 1',
+      'bgColor': Color(0xFF0A1206),
     },
     {
       'name': 'المنصة الثانية',
       'asset': 'assets/platform_2.jpg',
-      'badge': 'VIP 2',
-      'bgColor': Color(0xFF35175C),
+      'badge': 'PRO 2',
+      'bgColor': Color(0xFF111A08),
     },
   ];
 
@@ -228,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      'جلسة مشفرة — بريطانيا التفاحة 🍎',
+                                      'جلسة مشفرة — DARK V4 🔥',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: arabic(
@@ -266,26 +265,34 @@ class _LoginScreenState extends State<LoginScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const BritishFlagInline(size: 22),
+              const Icon(
+                Icons.local_fire_department_rounded,
+                size: 22,
+                color: Colors.amberAccent,
+              ),
               const SizedBox(width: 8),
               Text(
-                'بريطانيا التفاحة',
+                'DARK V4',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: arabic(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
+                style: latin(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
-                  letterSpacing: 1.0,
+                  letterSpacing: 2.0,
                 ),
               ),
               const SizedBox(width: 8),
-              const BritishFlagInline(size: 22),
+              const Icon(
+                Icons.local_fire_department_rounded,
+                size: 22,
+                color: Colors.amberAccent,
+              ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            'Britain Apple — DARK',
+            'THE BEST DARK',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: latin(
@@ -373,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen>
 
           // زر الدخول الناري الفاخر
           WineButton(
-            text: _isSubmitting ? 'جاري التحقق...' : 'بدء تشغيل بريطانيا التفاحة',
+            text: _isSubmitting ? 'جاري التحقق...' : 'بدء تشغيل DARK V4',
             icon: Icons.bolt_rounded,
             onPressed: _isSubmitting ? null : _handleLogin,
           ),
@@ -734,7 +741,11 @@ class _MandatorySubscriptionDialogState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const BritishFlagInline(size: 18),
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 18,
+                        color: Colors.amberAccent,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'صفحاتنا',
@@ -746,7 +757,11 @@ class _MandatorySubscriptionDialogState
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const BritishFlagInline(size: 18),
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 18,
+                        color: Colors.amberAccent,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

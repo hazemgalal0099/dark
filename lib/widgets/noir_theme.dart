@@ -3,45 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ==========================================
-// 1. الأسطح — Soft Lavender & Purple (Britain Apple Edition)
+// 1. الأسطح — Olive & Black (DARK V4 Edition)
 // ==========================================
-const Color kCoal = Color(0xFF1A0A2E); // خلفية بنفسجية داكنة عميقة
-const Color kGraphite = Color(0xFF220D3A); // خلفية كروت بنفسجية داكنة
-const Color kSteel = Color(0xFF2D1550); // سطح البطاقات بنفسجي
-const Color kSteelHi = Color(0xFF3D2060); // سطح مضاء بنفسجي أغمق
-const Color kEdge = Color(0xFF6B4A9B); // حدود بنفسجية هادئة
-const Color kEdgeHi = Color(0xFFE8CEFF); // حد بارز لافندر فاتح
+const Color kCoal = Color(0xFF080C06); // خلفية زيتية سوداء عميقة
+const Color kGraphite = Color(0xFF111A0A); // خلفية كروت زيتية داكنة
+const Color kSteel = Color(0xFF1A2410); // سطح البطاقات زيتي
+const Color kSteelHi = Color(0xFF243318); // سطح مضاء زيتي أغمق
+const Color kEdge = Color(0xFF3A5020); // حدود زيتية هادئة
+const Color kEdgeHi = Color(0xFFB8CC7A); // حد بارز زيتي فاتح
 
 // النصوص
 const Color kChalk = Color(0xFFFFFFFF); // نص أساسي أبيض ناصع 100%
-const Color kAsh = Color(0xFFF0E6FF); // نص ثانوي لافندر ناعم
-const Color kMute = Color(0xFFB39DDB); // نص خافت بنفسجي فاتح
+const Color kAsh = Color(0xFFE8EED8); // نص ثانوي كريمي ناعم
+const Color kMute = Color(0xFF8A9A6A); // نص خافت زيتي فاتح
 
-// Lavender & Purple — الهوية الجديدة Britain Apple
-const Color kOrangePrimary = Color(0xFFB39DDB); // لافندر ناعم أساسي
-const Color kOrangeLight = Color(0xFFE8CEFF); // لافندر فاتح جداً
-const Color kOrangeDeep = Color(0xFF4A1E8A); // بنفسجي عميق
-const Color kOrangeGlow = Color(0xFF9C6FDE); // وهج بنفسجي
-const Color kOrangePit = Color(0xFF0D0520); // حفرة بنفسجية عميقة
+// Olive & Black — هوية DARK V4
+const Color kOrangePrimary = Color(0xFF7A9A3A); // زيتي ساطع أساسي
+const Color kOrangeLight = Color(0xFFB8CC7A); // زيتي فاتح جداً
+const Color kOrangeDeep = Color(0xFF2A3A10); // زيتي عميق
+const Color kOrangeGlow = Color(0xFF5A7A2A); // وهج زيتي
+const Color kOrangePit = Color(0xFF050805); // حفرة زيتية عميقة
 const Color kWhitePure = Color(0xFFFFFFFF); // أبيض ناصع
-const Color kWhiteSoft = Color(0xFFF5EEFF); // أبيض لافندر ناعم
-const Color kFlameAmber = Color(0xFF9C6FDE); // بنفسجي متوسط
+const Color kWhiteSoft = Color(0xFFE8EED8); // أبيض كريمي ناعم
+const Color kFlameAmber = Color(0xFF8A9A4A); // زيتي متوسط
 
 // التوافق التام مع الكود القائم
-const Color kSilverLight = Color(0xFFE8CEFF); // لافندر فاتح ناصع
-const Color kSilver = Color(0xFFB39DDB); // لافندر ناعم ساطع
-const Color kSilverMid = Color(0xFF9C6FDE); // بنفسجي متوسط
-const Color kSilverDark = Color(0xFF6B4A9B); // بنفسجي داكن
-const Color kSilverPit = Color(0xFF0D0520); // أعمق بنفسجي
-const Color kSilverGlow = Color(0xFF7C4DC8); // وهج بنفسجي
-const Color kOnSilver = Color(0xFF1A0A2E); // نص داكن فوق اللافندر
+const Color kSilverLight = Color(0xFFB8CC7A); // زيتي فاتح ناصع
+const Color kSilver = Color(0xFF8A9A4A); // زيتي ناعم ساطع
+const Color kSilverMid = Color(0xFF6B7F3A); // زيتي متوسط
+const Color kSilverDark = Color(0xFF3A5020); // زيتي داكن
+const Color kSilverPit = Color(0xFF050805); // أعمق زيتي
+const Color kSilverGlow = Color(0xFF5A7A2A); // وهج زيتي
+const Color kOnSilver = Color(0xFF080C06); // نص داكن فوق الزيتي
 
 const Color kWine = kOrangePrimary;
 const Color kWineLt = kWhitePure;
 const Color kWineDeep = kOrangeDeep;
 const Color kWinePit = kOrangePit;
 const Color kWineGlow = kOrangeGlow;
-const Color kOnWine = Color(0xFF1A0A2E);
+const Color kOnWine = Color(0xFF080C06);
 const Color kPewter = kOrangeLight;
 const Color kPewterLt = kWhitePure;
 
@@ -49,19 +49,19 @@ const Color kPewterLt = kWhitePure;
 const Color kAlert = Color(0xFFFF4444);
 const Color kSuccess = Color(0xFF6DBF7E);
 
-// تدرج لافندر وبنفسجي فاخر
+// تدرج زيتي وأسود فاخر
 const LinearGradient kFlameGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFE8CEFF), Color(0xFFB39DDB), Color(0xFF7C4DC8)],
+  colors: [Color(0xFFB8CC7A), Color(0xFF8A9A4A), Color(0xFF3A5020)],
   stops: [0.0, 0.45, 1.0],
 );
 
-// تدرج لافندر في بنفسجي
+// تدرج زيتي غامق
 const LinearGradient kOrangeWhiteGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFE8CEFF), Color(0xFFB39DDB), Color(0xFF7C4DC8)],
+  colors: [Color(0xFFB8CC7A), Color(0xFF8A9A4A), Color(0xFF3A5020)],
   stops: [0.0, 0.45, 1.0],
 );
 
@@ -71,14 +71,14 @@ const LinearGradient kWineGradient = kFlameGradient;
 const LinearGradient kGlassGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [Color(0xF5220D3A), Color(0xF22D1550), Color(0xFA1A0A2E)],
+  colors: [Color(0xF5111A0A), Color(0xF21A2410), Color(0xFA080C06)],
   stops: [0.0, 0.5, 1.0],
 );
 
 const LinearGradient kCardHeaderGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [Color(0xFF2D1550), Color(0xFF220D3A)],
+  colors: [Color(0xFF1A2410), Color(0xFF111A0A)],
 );
 
 
@@ -150,7 +150,7 @@ bool motionAllowed(BuildContext context) {
 }
 
 // ==========================================
-// 4. NoirCanvas — خلفية كل الصفحات (Lavender & Purple Edition)
+// 4. NoirCanvas — خلفية كل الصفحات (DARK V4 Olive Edition)
 // ==========================================
 class NoirCanvas extends StatelessWidget {
   final Widget child;
@@ -167,7 +167,7 @@ class NoirCanvas extends StatelessWidget {
         // 2. خلفية بنفسجية لافندر
         Positioned.fill(
           child: Image.asset(
-            'assets/wallpaper_uk.jpg',
+            'assets/wallpaper_dark_v4.jpg',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
             opacity: const AlwaysStoppedAnimation(0.25),
@@ -176,7 +176,7 @@ class NoirCanvas extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF1A0A2E), Color(0xFF2D1550), Color(0xFF1A0A2E)],
+                  colors: [Color(0xFF080C06), Color(0xFF1A2410), Color(0xFF080C06)],
                 ),
               ),
             ),
@@ -548,11 +548,11 @@ class LogoRing extends StatelessWidget {
             ),
             child: ClipOval(
               child: Image.asset(
-                'assets/logo_uk.png',
+                'assets/logo_dark_v4.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => const ColoredBox(
                   color: kCoal,
-                  child: Icon(Icons.shield_rounded, color: Color(0xFFB39DDB)),
+                  child: Icon(Icons.shield_rounded, color: Color(0xFF8A9A4A)),
                 ),
               ),
             ),

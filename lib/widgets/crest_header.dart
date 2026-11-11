@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'noir_theme.dart';
-import 'british_flag.dart';
 
 // ==========================================
-// CrestHeader — بنر Britain Apple الفاخر
+// CrestHeader — بنر DARK V4 الفاخر
 // ==========================================
 class CrestHeader extends StatelessWidget {
   final double ringSize;
@@ -30,7 +29,7 @@ class CrestHeader extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // 1. حاوية البنر الصوري مع إطار لافندر فاخر
+                // 1. حاوية البنر الصوري مع إطار زيتي فاخر
                 Positioned(
                   top: 0,
                   left: 0,
@@ -69,9 +68,9 @@ class CrestHeader extends StatelessWidget {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          // صورة البنر البريطاني
+                          // صورة البنر
                           Image.asset(
-                            'assets/banner_uk.jpg',
+                            'assets/banner_dark_v4.jpg',
                             fit: BoxFit.cover,
                             alignment: Alignment.center,
                             errorBuilder: (_, _, _) => Container(
@@ -80,16 +79,16 @@ class CrestHeader extends StatelessWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Color(0xFF1A0A2E),
-                                    Color(0xFF2D1550),
-                                    Color(0xFF4A1E8A),
+                                    Color(0xFF080C06),
+                                    Color(0xFF1A2410),
+                                    Color(0xFF2A3A10),
                                   ],
                                 ),
                               ),
                             ),
                           ),
 
-                          // طبقة تظليل لافندر متدرجة
+                          // طبقة تظليل زيتية متدرجة
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -97,7 +96,7 @@ class CrestHeader extends StatelessWidget {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.black.withValues(alpha: 0.45),
-                                  const Color(0xFF1A0A2E).withValues(alpha: 0.15),
+                                  const Color(0xFF080C06).withValues(alpha: 0.15),
                                   Colors.black.withValues(alpha: 0.80),
                                 ],
                                 stops: const [0.0, 0.45, 1.0],
@@ -120,7 +119,7 @@ class CrestHeader extends StatelessWidget {
                             ),
                           ),
 
-                          // الشارات العلوية
+                          // شارة DARK V4
                           SafeArea(
                             bottom: false,
                             child: Padding(
@@ -129,51 +128,9 @@ class CrestHeader extends StatelessWidget {
                                 vertical: 6.0,
                               ),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  // شارة VIP اليمين
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 9,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.65),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: kOrangeLight.withValues(alpha: 0.70),
-                                        width: 1.0,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: kOrangePrimary.withValues(alpha: 0.35),
-                                          blurRadius: 10,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.workspace_premium_rounded,
-                                          size: 13,
-                                          color: Colors.amberAccent,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'VIP',
-                                          style: latin(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // شارة BRITAIN APPLE مع علم بريطانيا
+                                  // شارة DARK V4
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
@@ -196,10 +153,14 @@ class CrestHeader extends StatelessWidget {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const BritishFlagInline(size: 14),
+                                        const Icon(
+                                          Icons.local_fire_department_rounded,
+                                          size: 13,
+                                          color: Colors.amberAccent,
+                                        ),
                                         const SizedBox(width: 5),
                                         Text(
-                                          'BRITAIN APPLE',
+                                          'DARK V4',
                                           style: latin(
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w800,
@@ -220,7 +181,7 @@ class CrestHeader extends StatelessWidget {
                   ),
                 ),
 
-                // 2. خط نور متدرج لافندر أسفل حافة البنر
+                // 2. خط نور متدرج زيتي أسفل حافة البنر
                 Positioned(
                   top: bannerHeight - 1,
                   left: 20,
