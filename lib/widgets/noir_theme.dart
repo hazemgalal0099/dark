@@ -1,67 +1,67 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ==========================================
-// 1. الأسطح — Olive & Black (DARK V4 Edition)
+// 1. Ø§Ù„Ø£Ø³Ø·Ø­ â€” Burgundy & Black (DARK V5 Edition)
 // ==========================================
-const Color kCoal = Color(0xFF080C06); // خلفية زيتية سوداء عميقة
-const Color kGraphite = Color(0xFF111A0A); // خلفية كروت زيتية داكنة
-const Color kSteel = Color(0xFF1A2410); // سطح البطاقات زيتي
-const Color kSteelHi = Color(0xFF243318); // سطح مضاء زيتي أغمق
-const Color kEdge = Color(0xFF3A5020); // حدود زيتية هادئة
-const Color kEdgeHi = Color(0xFFB8CC7A); // حد بارز زيتي فاتح
+const Color kCoal = Color(0xFF0A0507); // Ø®Ù„ÙÙŠØ© Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø³ÙˆØ¯Ø§Ø¡ Ø¹Ù…ÙŠÙ‚Ø©
+const Color kGraphite = Color(0xFF160810); // Ø®Ù„ÙÙŠØ© ÙƒØ±ÙˆØª Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø¯Ø§ÙƒÙ†Ø©
+const Color kSteel = Color(0xFF220D18); // Ø³Ø·Ø­ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø¨Ø±ØºÙ†Ø¯ÙŠ
+const Color kSteelHi = Color(0xFF2E1020); // Ø³Ø·Ø­ Ù…Ø¶Ø§Ø¡ Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø£ØºÙ…Ù‚
+const Color kEdge = Color(0xFF6B1A35); // Ø­Ø¯ÙˆØ¯ Ø¨Ø±ØºÙ†Ø¯ÙŠ Ù‡Ø§Ø¯Ø¦Ø©
+const Color kEdgeHi = Color(0xFFD4AF80); // Ø­Ø¯ Ø¨Ø§Ø±Ø² Ø°Ù‡Ø¨ÙŠ ÙØ§ØªØ­
 
-// النصوص
-const Color kChalk = Color(0xFFFFFFFF); // نص أساسي أبيض ناصع 100%
-const Color kAsh = Color(0xFFE8EED8); // نص ثانوي كريمي ناعم
-const Color kMute = Color(0xFF8A9A6A); // نص خافت زيتي فاتح
+// Ø§Ù„Ù†ØµÙˆØµ
+const Color kChalk = Color(0xFFFFFFFF); // Ù†Øµ Ø£Ø³Ø§Ø³ÙŠ Ø£Ø¨ÙŠØ¶ Ù†Ø§ØµØ¹ 100%
+const Color kAsh = Color(0xFFF5E8D8); // Ù†Øµ Ø«Ø§Ù†ÙˆÙŠ ÙƒØ±ÙŠÙ…ÙŠ Ù†Ø§Ø¹Ù…
+const Color kMute = Color(0xFFAA7A6A); // Ù†Øµ Ø®Ø§ÙØª Ø¨Ø±ØºÙ†Ø¯ÙŠ ÙØ§ØªØ­
 
-// Olive & Black — هوية DARK V4
-const Color kOrangePrimary = Color(0xFF7A9A3A); // زيتي ساطع أساسي
-const Color kOrangeLight = Color(0xFFB8CC7A); // زيتي فاتح جداً
-const Color kOrangeDeep = Color(0xFF2A3A10); // زيتي عميق
-const Color kOrangeGlow = Color(0xFF5A7A2A); // وهج زيتي
-const Color kOrangePit = Color(0xFF050805); // حفرة زيتية عميقة
-const Color kWhitePure = Color(0xFFFFFFFF); // أبيض ناصع
-const Color kWhiteSoft = Color(0xFFE8EED8); // أبيض كريمي ناعم
-const Color kFlameAmber = Color(0xFF8A9A4A); // زيتي متوسط
+// Burgundy & Black â€” Ù‡ÙˆÙŠØ© DARK V5
+const Color kOrangePrimary = Color(0xFF8B1A3A); // Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø³Ø§Ø·Ø¹ Ø£Ø³Ø§Ø³ÙŠ
+const Color kOrangeLight = Color(0xFFD4AF80); // Ø°Ù‡Ø¨ÙŠ ÙØ§ØªØ­ Ø¬Ø¯Ø§Ù‹
+const Color kOrangeDeep = Color(0xFF4A0A1E); // Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø¹Ù…ÙŠÙ‚
+const Color kOrangeGlow = Color(0xFFB22048); // ÙˆÙ‡Ø¬ Ø¨Ø±ØºÙ†Ø¯ÙŠ
+const Color kOrangePit = Color(0xFF050208); // Ø­ÙØ±Ø© Ø³ÙˆØ¯Ø§Ø¡ Ø¹Ù…ÙŠÙ‚Ø©
+const Color kWhitePure = Color(0xFFFFFFFF); // Ø£Ø¨ÙŠØ¶ Ù†Ø§ØµØ¹
+const Color kWhiteSoft = Color(0xFFF5E8D8); // Ø£Ø¨ÙŠØ¶ ÙƒØ±ÙŠÙ…ÙŠ Ù†Ø§Ø¹Ù…
+const Color kFlameAmber = Color(0xFFD4AF80); // Ø°Ù‡Ø¨ÙŠ Ù…ØªÙˆØ³Ø·
 
-// التوافق التام مع الكود القائم
-const Color kSilverLight = Color(0xFFB8CC7A); // زيتي فاتح ناصع
-const Color kSilver = Color(0xFF8A9A4A); // زيتي ناعم ساطع
-const Color kSilverMid = Color(0xFF6B7F3A); // زيتي متوسط
-const Color kSilverDark = Color(0xFF3A5020); // زيتي داكن
-const Color kSilverPit = Color(0xFF050805); // أعمق زيتي
-const Color kSilverGlow = Color(0xFF5A7A2A); // وهج زيتي
-const Color kOnSilver = Color(0xFF080C06); // نص داكن فوق الزيتي
+// Ø§Ù„ØªÙˆØ§ÙÙ‚ Ø§Ù„ØªØ§Ù… Ù…Ø¹ Ø§Ù„ÙƒÙˆØ¯ Ø§Ù„Ù‚Ø§Ø¦Ù…
+const Color kSilverLight = Color(0xFFD4AF80); // Ø°Ù‡Ø¨ÙŠ ÙØ§ØªØ­ Ù†Ø§ØµØ¹
+const Color kSilver = Color(0xFFB89060); // Ø°Ù‡Ø¨ÙŠ Ù†Ø§Ø¹Ù… Ø³Ø§Ø·Ø¹
+const Color kSilverMid = Color(0xFF8B1A3A); // Ø¨Ø±ØºÙ†Ø¯ÙŠ Ù…ØªÙˆØ³Ø·
+const Color kSilverDark = Color(0xFF4A0A1E); // Ø¨Ø±ØºÙ†Ø¯ÙŠ Ø¯Ø§ÙƒÙ†
+const Color kSilverPit = Color(0xFF050208); // Ø£Ø¹Ù…Ù‚ Ø£Ø³ÙˆØ¯
+const Color kSilverGlow = Color(0xFFB22048); // ÙˆÙ‡Ø¬ Ø¨Ø±ØºÙ†Ø¯ÙŠ
+const Color kOnSilver = Color(0xFF0A0507); // Ù†Øµ Ø¯Ø§ÙƒÙ† ÙÙˆÙ‚ Ø§Ù„Ø¨Ø±ØºÙ†Ø¯ÙŠ
 
 const Color kWine = kOrangePrimary;
 const Color kWineLt = kWhitePure;
 const Color kWineDeep = kOrangeDeep;
 const Color kWinePit = kOrangePit;
 const Color kWineGlow = kOrangeGlow;
-const Color kOnWine = Color(0xFF080C06);
+const Color kOnWine = Color(0xFF0A0507);
 const Color kPewter = kOrangeLight;
 const Color kPewterLt = kWhitePure;
 
-// الحالات
+// Ø§Ù„Ø­Ø§Ù„Ø§Øª
 const Color kAlert = Color(0xFFFF4444);
 const Color kSuccess = Color(0xFF6DBF7E);
 
-// تدرج زيتي وأسود فاخر
+// ØªØ¯Ø±Ø¬ Ø¨Ø±ØºÙ†Ø¯ÙŠ ÙˆØ°Ù‡Ø¨ÙŠ ÙØ§Ø®Ø±
 const LinearGradient kFlameGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFB8CC7A), Color(0xFF8A9A4A), Color(0xFF3A5020)],
+  colors: [Color(0xFFD4AF80), Color(0xFF8B1A3A), Color(0xFF4A0A1E)],
   stops: [0.0, 0.45, 1.0],
 );
 
-// تدرج زيتي غامق
+// ØªØ¯Ø±Ø¬ Ø¨Ø±ØºÙ†Ø¯ÙŠ ØºØ§Ù…Ù‚
 const LinearGradient kOrangeWhiteGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFB8CC7A), Color(0xFF8A9A4A), Color(0xFF3A5020)],
+  colors: [Color(0xFFD4AF80), Color(0xFF8B1A3A), Color(0xFF4A0A1E)],
   stops: [0.0, 0.45, 1.0],
 );
 
@@ -71,19 +71,19 @@ const LinearGradient kWineGradient = kFlameGradient;
 const LinearGradient kGlassGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [Color(0xF5111A0A), Color(0xF21A2410), Color(0xFA080C06)],
+  colors: [Color(0xF5160810), Color(0xF2220D18), Color(0xFA0A0507)],
   stops: [0.0, 0.5, 1.0],
 );
 
 const LinearGradient kCardHeaderGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [Color(0xFF1A2410), Color(0xFF111A0A)],
+  colors: [Color(0xFF220D18), Color(0xFF160810)],
 );
 
 
 // ==========================================
-// 2. الخطوط (google_fonts)
+// 2. Ø§Ù„Ø®Ø·ÙˆØ· (google_fonts)
 // ==========================================
 TextStyle arabic({
   double? fontSize,
@@ -134,7 +134,7 @@ TextStyle brand({
 }
 
 // ==========================================
-// 3. مساعدات الفحص والأنيميشن
+// 3. Ù…Ø³Ø§Ø¹Ø¯Ø§Øª Ø§Ù„ÙØ­Øµ ÙˆØ§Ù„Ø£Ù†ÙŠÙ…ÙŠØ´Ù†
 // ==========================================
 bool get isWidgetTest =>
     WidgetsBinding.instance.runtimeType.toString().contains('Test');
@@ -150,7 +150,7 @@ bool motionAllowed(BuildContext context) {
 }
 
 // ==========================================
-// 4. NoirCanvas — خلفية كل الصفحات (DARK V4 Olive Edition)
+// 4. NoirCanvas â€” Ø®Ù„ÙÙŠØ© ÙƒÙ„ Ø§Ù„ØµÙØ­Ø§Øª (DARK V4 Olive Edition)
 // ==========================================
 class NoirCanvas extends StatelessWidget {
   final Widget child;
@@ -162,12 +162,12 @@ class NoirCanvas extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. أعمق خلفية
+        // 1. Ø£Ø¹Ù…Ù‚ Ø®Ù„ÙÙŠØ©
         const ColoredBox(color: kCoal),
-        // 2. خلفية بنفسجية لافندر
+        // 2. Ø®Ù„ÙÙŠØ© Ø¨Ù†ÙØ³Ø¬ÙŠØ© Ù„Ø§ÙÙ†Ø¯Ø±
         Positioned.fill(
           child: Image.asset(
-            'assets/wallpaper_dark_v4.jpg',
+            'assets/wallpaper_dark_v5.jpg',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
             opacity: const AlwaysStoppedAnimation(0.25),
@@ -182,13 +182,13 @@ class NoirCanvas extends StatelessWidget {
             ),
           ),
         ),
-        // 3. CustomPaint وهج فضي وشبكة تقنية وتعتيم أطراف
+        // 3. CustomPaint ÙˆÙ‡Ø¬ ÙØ¶ÙŠ ÙˆØ´Ø¨ÙƒØ© ØªÙ‚Ù†ÙŠØ© ÙˆØªØ¹ØªÙŠÙ… Ø£Ø·Ø±Ø§Ù
         const Positioned.fill(
           child: CustomPaint(
             painter: _CyberCanvasPainter(),
           ),
         ),
-        // 4. المحتوى
+        // 4. Ø§Ù„Ù…Ø­ØªÙˆÙ‰
         child,
       ],
     );
@@ -200,7 +200,7 @@ class _CyberCanvasPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. وهج كافيه فاتح دافئ radial من أعلى الشاشة
+    // 1. ÙˆÙ‡Ø¬ ÙƒØ§ÙÙŠÙ‡ ÙØ§ØªØ­ Ø¯Ø§ÙØ¦ radial Ù…Ù† Ø£Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø©
     final glowPaint = Paint()
       ..shader = RadialGradient(
         center: const Alignment(0, -0.60),
@@ -214,7 +214,7 @@ class _CyberCanvasPainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), glowPaint);
 
-    // 2. خطوط أفقية كافيه ذهبية خفية كل 48px
+    // 2. Ø®Ø·ÙˆØ· Ø£ÙÙ‚ÙŠØ© ÙƒØ§ÙÙŠÙ‡ Ø°Ù‡Ø¨ÙŠØ© Ø®ÙÙŠØ© ÙƒÙ„ 48px
     final linePaint = Paint()
       ..color = kOrangeLight.withValues(alpha: 0.04)
       ..strokeWidth = 1.0;
@@ -222,7 +222,7 @@ class _CyberCanvasPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
     }
 
-    // 3. خطوط رأسية كريمية خفية كل 80px
+    // 3. Ø®Ø·ÙˆØ· Ø±Ø£Ø³ÙŠØ© ÙƒØ±ÙŠÙ…ÙŠØ© Ø®ÙÙŠØ© ÙƒÙ„ 80px
     final vLinePaint = Paint()
       ..color = kOrangeLight.withValues(alpha: 0.025)
       ..strokeWidth = 1.0;
@@ -230,7 +230,7 @@ class _CyberCanvasPainter extends CustomPainter {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), vLinePaint);
     }
 
-    // 4. وهج كافيه سفلي دافئ
+    // 4. ÙˆÙ‡Ø¬ ÙƒØ§ÙÙŠÙ‡ Ø³ÙÙ„ÙŠ Ø¯Ø§ÙØ¦
     final bottomGlow = Paint()
       ..shader = RadialGradient(
         center: const Alignment(0, 1.30),
@@ -243,7 +243,7 @@ class _CyberCanvasPainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bottomGlow);
 
-    // 5. تعتيم أطراف radial
+    // 5. ØªØ¹ØªÙŠÙ… Ø£Ø·Ø±Ø§Ù radial
     final vignettePaint = Paint()
       ..shader = RadialGradient(
         center: Alignment.center,
@@ -266,7 +266,7 @@ class _CyberCanvasPainter extends CustomPainter {
 }
 
 // ==========================================
-// 5. NoirCard — البطاقة العادية الزجاجية
+// 5. NoirCard â€” Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø¹Ø§Ø¯ÙŠØ© Ø§Ù„Ø²Ø¬Ø§Ø¬ÙŠØ©
 // ==========================================
 class NoirCard extends StatelessWidget {
   final Widget child;
@@ -324,7 +324,7 @@ class NoirCard extends StatelessWidget {
 }
 
 // ==========================================
-// 6. TicketCard — بطاقة التذكرة النارية الفاخرة (برتقالي وأبيض)
+// 6. TicketCard â€” Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„ØªØ°ÙƒØ±Ø© Ø§Ù„Ù†Ø§Ø±ÙŠØ© Ø§Ù„ÙØ§Ø®Ø±Ø© (Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙˆØ£Ø¨ÙŠØ¶)
 // ==========================================
 class TicketCard extends StatelessWidget {
   final double notchAt;
@@ -420,7 +420,7 @@ class _TicketCardPainter extends CustomPainter {
     );
     path.close();
 
-    // 1. ظل البطاقة
+    // 1. Ø¸Ù„ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©
     final shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.75)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
@@ -429,19 +429,19 @@ class _TicketCardPainter extends CustomPainter {
     canvas.drawPath(path, shadowPaint);
     canvas.restore();
 
-    // 2. تعبئة البطاقة بالزجاج الأسود الدافئ
+    // 2. ØªØ¹Ø¨Ø¦Ø© Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø¨Ø§Ù„Ø²Ø¬Ø§Ø¬ Ø§Ù„Ø£Ø³ÙˆØ¯ Ø§Ù„Ø¯Ø§ÙØ¦
     final fillPaint = Paint()
       ..shader = kGlassGradient.createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawPath(path, fillPaint);
 
-    // 3. حدود البطاقة النارية البرتقالية الخافتة
+    // 3. Ø­Ø¯ÙˆØ¯ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ù†Ø§Ø±ÙŠØ© Ø§Ù„Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠØ© Ø§Ù„Ø®Ø§ÙØªØ©
     final borderPaint = Paint()
       ..color = kOrangePrimary.withValues(alpha: 0.38)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     canvas.drawPath(path, borderPaint);
 
-    // 4. خط تقطيع منقّط برتقالي ناري عند ارتفاع notchAt
+    // 4. Ø®Ø· ØªÙ‚Ø·ÙŠØ¹ Ù…Ù†Ù‚Ù‘Ø· Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ù†Ø§Ø±ÙŠ Ø¹Ù†Ø¯ Ø§Ø±ØªÙØ§Ø¹ notchAt
     final dashPaint = Paint()
       ..color = kOrangeLight.withValues(alpha: 0.70)
       ..strokeWidth = 1.3;
@@ -460,7 +460,7 @@ class _TicketCardPainter extends CustomPainter {
       startX += dashWidth + dashSpace;
     }
 
-    // 5. خيط برتقالي في أبيض ساطع أعلى البطاقة
+    // 5. Ø®ÙŠØ· Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙÙŠ Ø£Ø¨ÙŠØ¶ Ø³Ø§Ø·Ø¹ Ø£Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©
     final threadPaint = Paint()
       ..shader = kOrangeWhiteGradient.createShader(
         Rect.fromLTWH(w * 0.18, 0, w * 0.64, 2.5),
@@ -480,7 +480,7 @@ class _TicketCardPainter extends CustomPainter {
 }
 
 // ==========================================
-// 7. LogoRing — إطار اللوجو الدائري الناري (برتقالي وأبيض)
+// 7. LogoRing â€” Ø¥Ø·Ø§Ø± Ø§Ù„Ù„ÙˆØ¬Ùˆ Ø§Ù„Ø¯Ø§Ø¦Ø±ÙŠ Ø§Ù„Ù†Ø§Ø±ÙŠ (Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙˆØ£Ø¨ÙŠØ¶)
 // ==========================================
 class LogoRing extends StatelessWidget {
   final double size;
@@ -501,7 +501,7 @@ class LogoRing extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // هالة خارجية برتقالية نارية
+          // Ù‡Ø§Ù„Ø© Ø®Ø§Ø±Ø¬ÙŠØ© Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠØ© Ù†Ø§Ø±ÙŠØ©
           Container(
             width: size,
             height: size,
@@ -515,7 +515,7 @@ class LogoRing extends StatelessWidget {
               ),
             ),
           ),
-          // دايرة متملية تدرج برتقالي ناري مع إطار أبيض ناصع
+          // Ø¯Ø§ÙŠØ±Ø© Ù…ØªÙ…Ù„ÙŠØ© ØªØ¯Ø±Ø¬ Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ù†Ø§Ø±ÙŠ Ù…Ø¹ Ø¥Ø·Ø§Ø± Ø£Ø¨ÙŠØ¶ Ù†Ø§ØµØ¹
           Container(
             width: size,
             height: size,
@@ -534,7 +534,7 @@ class LogoRing extends StatelessWidget {
               ],
             ),
           ),
-          // دايرة داخلية من kSteel
+          // Ø¯Ø§ÙŠØ±Ø© Ø¯Ø§Ø®Ù„ÙŠØ© Ù…Ù† kSteel
           Container(
             width: size - (pad * 2),
             height: size - (pad * 2),
@@ -548,7 +548,7 @@ class LogoRing extends StatelessWidget {
             ),
             child: ClipOval(
               child: Image.asset(
-                'assets/logo_dark_v4.png',
+                'assets/logo_dark_v5.png',
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => const ColoredBox(
                   color: kCoal,
@@ -557,7 +557,7 @@ class LogoRing extends StatelessWidget {
               ),
             ),
           ),
-          // علامات وقوس التقدم
+          // Ø¹Ù„Ø§Ù…Ø§Øª ÙˆÙ‚ÙˆØ³ Ø§Ù„ØªÙ‚Ø¯Ù…
           Positioned.fill(
             child: CustomPaint(
               painter: _LogoRingPainter(progress: progress),
@@ -579,7 +579,7 @@ class _LogoRingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // 4 علامات بيضاء دقيقة
+    // 4 Ø¹Ù„Ø§Ù…Ø§Øª Ø¨ÙŠØ¶Ø§Ø¡ Ø¯Ù‚ÙŠÙ‚Ø©
     final tickPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.85)
       ..strokeWidth = 1.5
@@ -598,7 +598,7 @@ class _LogoRingPainter extends CustomPainter {
       canvas.drawLine(p1, p2, tickPaint);
     }
 
-    // قوس تقدم باللون الأبيض الناصع مع وهج ناري
+    // Ù‚ÙˆØ³ ØªÙ‚Ø¯Ù… Ø¨Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø£Ø¨ÙŠØ¶ Ø§Ù„Ù†Ø§ØµØ¹ Ù…Ø¹ ÙˆÙ‡Ø¬ Ù†Ø§Ø±ÙŠ
     if (progress != null && progress! > 0) {
       final arcPaint = Paint()
         ..color = Colors.white
@@ -623,7 +623,7 @@ class _LogoRingPainter extends CustomPainter {
 }
 
 // ==========================================
-// 8. ArcGauge — المقياس القوسي الفضي
+// 8. ArcGauge â€” Ø§Ù„Ù…Ù‚ÙŠØ§Ø³ Ø§Ù„Ù‚ÙˆØ³ÙŠ Ø§Ù„ÙØ¶ÙŠ
 // ==========================================
 class ArcGauge extends StatelessWidget {
   final double progress;
@@ -671,7 +671,7 @@ class _ArcGaugePainter extends CustomPainter {
     final center = Offset(w / 2, size.height);
     final arcRect = Rect.fromCircle(center: center, radius: radius);
 
-    // 1. مسار خلفي
+    // 1. Ù…Ø³Ø§Ø± Ø®Ù„ÙÙŠ
     final bgPaint = Paint()
       ..color = kSteelHi
       ..style = PaintingStyle.stroke
@@ -679,7 +679,7 @@ class _ArcGaugePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawArc(arcRect, math.pi, math.pi, false, bgPaint);
 
-    // 2. 21 علامة تدريج فضية
+    // 2. 21 Ø¹Ù„Ø§Ù…Ø© ØªØ¯Ø±ÙŠØ¬ ÙØ¶ÙŠØ©
     const int tickCount = 21;
     final clampedP = progress.clamp(0.0, 1.0);
     final passedTicks = (clampedP * (tickCount - 1)).round();
@@ -709,7 +709,7 @@ class _ArcGaugePainter extends CustomPainter {
       canvas.drawLine(p1, p2, tickPaint);
     }
 
-    // 3. قوس التقدم بتدرج برتقالي ناري ينتهي بأبيض ساطع
+    // 3. Ù‚ÙˆØ³ Ø§Ù„ØªÙ‚Ø¯Ù… Ø¨ØªØ¯Ø±Ø¬ Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ù†Ø§Ø±ÙŠ ÙŠÙ†ØªÙ‡ÙŠ Ø¨Ø£Ø¨ÙŠØ¶ Ø³Ø§Ø·Ø¹
     if (clampedP > 0.005) {
       final sweepAngle = math.pi * clampedP;
       final progressPaint = Paint()
@@ -729,7 +729,7 @@ class _ArcGaugePainter extends CustomPainter {
 
       canvas.drawArc(arcRect, math.pi, sweepAngle, false, progressPaint);
 
-      // 4. رأس مضيء أبيض ناصع عند نهاية القوس مع وهج ناري
+      // 4. Ø±Ø£Ø³ Ù…Ø¶ÙŠØ¡ Ø£Ø¨ÙŠØ¶ Ù†Ø§ØµØ¹ Ø¹Ù†Ø¯ Ù†Ù‡Ø§ÙŠØ© Ø§Ù„Ù‚ÙˆØ³ Ù…Ø¹ ÙˆÙ‡Ø¬ Ù†Ø§Ø±ÙŠ
       final headAngle = math.pi + sweepAngle;
       final headCenter = Offset(
         center.dx + radius * math.cos(headAngle),
@@ -758,7 +758,7 @@ class _ArcGaugePainter extends CustomPainter {
 }
 
 // ==========================================
-// 9. WineButton (FireButton) — الزر الأساسي الناري الفاخر (برتقالي وأبيض)
+// 9. WineButton (FireButton) â€” Ø§Ù„Ø²Ø± Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ Ø§Ù„Ù†Ø§Ø±ÙŠ Ø§Ù„ÙØ§Ø®Ø± (Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙˆØ£Ø¨ÙŠØ¶)
 // ==========================================
 class WineButton extends StatefulWidget {
   final String text;
@@ -876,7 +876,7 @@ class _WineButtonState extends State<WineButton>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // دايرة أيقونة بيضاء على اليمين بأيقونة برتقالية
+                    // Ø¯Ø§ÙŠØ±Ø© Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø¨ÙŠØ¶Ø§Ø¡ Ø¹Ù„Ù‰ Ø§Ù„ÙŠÙ…ÙŠÙ† Ø¨Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠØ©
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: Container(
@@ -905,7 +905,7 @@ class _WineButtonState extends State<WineButton>
                         ),
                       ),
                     ),
-                    // النص متوسّط باللون الأبيض الناصع
+                    // Ø§Ù„Ù†Øµ Ù…ØªÙˆØ³Ù‘Ø· Ø¨Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø£Ø¨ÙŠØ¶ Ø§Ù„Ù†Ø§ØµØ¹
                     Expanded(
                       child: Center(
                         child: Text(
@@ -920,7 +920,7 @@ class _WineButtonState extends State<WineButton>
                         ),
                       ),
                     ),
-                    // مسافة متناسقة على الشمال
+                    // Ù…Ø³Ø§ÙØ© Ù…ØªÙ†Ø§Ø³Ù‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø´Ù…Ø§Ù„
                     SizedBox(width: iconBoxSize + 8.0),
                   ],
                 ),
@@ -934,10 +934,10 @@ class _WineButtonState extends State<WineButton>
 }
 
 // ==========================================
-// 10. باقي العناصر الفاخرة
+// 10. Ø¨Ø§Ù‚ÙŠ Ø§Ù„Ø¹Ù†Ø§ØµØ± Ø§Ù„ÙØ§Ø®Ø±Ø©
 // ==========================================
 
-// Chip: كبسولة فضية صغيرة
+// Chip: ÙƒØ¨Ø³ÙˆÙ„Ø© ÙØ¶ÙŠØ© ØµØºÙŠØ±Ø©
 class NoirChip extends StatelessWidget {
   final Widget? icon;
   final String label;
@@ -990,7 +990,7 @@ class NoirChip extends StatelessWidget {
   }
 }
 
-// DashRule: خط منقّط أفقي برتقالي ناري
+// DashRule: Ø®Ø· Ù…Ù†Ù‚Ù‘Ø· Ø£ÙÙ‚ÙŠ Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ù†Ø§Ø±ÙŠ
 class DashRule extends StatelessWidget {
   final Color color;
   final double height;
@@ -1047,7 +1047,7 @@ class _DashRulePainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.strokeHeight != strokeHeight;
 }
 
-// RailStep: خطوة على مسار رأسي (برتقالي وأبيض)
+// RailStep: Ø®Ø·ÙˆØ© Ø¹Ù„Ù‰ Ù…Ø³Ø§Ø± Ø±Ø£Ø³ÙŠ (Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙˆØ£Ø¨ÙŠØ¶)
 class RailStep extends StatelessWidget {
   final int stepNumber;
   final bool isCompleted;
@@ -1074,7 +1074,7 @@ class RailStep extends StatelessWidget {
           children: [
             Column(
               children: [
-                // دايرة الخطوة 26px مع تدرج ناري أو حد أبيض
+                // Ø¯Ø§ÙŠØ±Ø© Ø§Ù„Ø®Ø·ÙˆØ© 26px Ù…Ø¹ ØªØ¯Ø±Ø¬ Ù†Ø§Ø±ÙŠ Ø£Ùˆ Ø­Ø¯ Ø£Ø¨ÙŠØ¶
                 Container(
                   width: 26,
                   height: 26,
@@ -1108,7 +1108,7 @@ class RailStep extends StatelessWidget {
                           ),
                   ),
                 ),
-                // الخط الرأسي للخطوة التالية باللون البرتقالي الناري
+                // Ø§Ù„Ø®Ø· Ø§Ù„Ø±Ø£Ø³ÙŠ Ù„Ù„Ø®Ø·ÙˆØ© Ø§Ù„ØªØ§Ù„ÙŠØ© Ø¨Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ø§Ù„Ù†Ø§Ø±ÙŠ
                 if (!isLast)
                   Expanded(
                     child: Container(
@@ -1146,7 +1146,7 @@ class RailStep extends StatelessWidget {
   }
 }
 
-// GlowDot: نقطة جمر نابضة بالبرتقالي الناري
+// GlowDot: Ù†Ù‚Ø·Ø© Ø¬Ù…Ø± Ù†Ø§Ø¨Ø¶Ø© Ø¨Ø§Ù„Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ Ø§Ù„Ù†Ø§Ø±ÙŠ
 class GlowDot extends StatefulWidget {
   final double size;
   final Color color;
@@ -1217,7 +1217,7 @@ class _GlowDotState extends State<GlowDot> with SingleTickerProviderStateMixin {
   }
 }
 
-// StepMeter: شريط تقدم مقسّم بالنار والبرتقالي
+// StepMeter: Ø´Ø±ÙŠØ· ØªÙ‚Ø¯Ù… Ù…Ù‚Ø³Ù‘Ù… Ø¨Ø§Ù„Ù†Ø§Ø± ÙˆØ§Ù„Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ
 class StepMeter extends StatelessWidget {
   final int total;
   final int current;
@@ -1257,7 +1257,7 @@ class StepMeter extends StatelessWidget {
   }
 }
 
-// LureStrip: شريط كبسولة ناري برتقالي وأبيض
+// LureStrip: Ø´Ø±ÙŠØ· ÙƒØ¨Ø³ÙˆÙ„Ø© Ù†Ø§Ø±ÙŠ Ø¨Ø±ØªÙ‚Ø§Ù„ÙŠ ÙˆØ£Ø¨ÙŠØ¶
 class LureStrip extends StatefulWidget {
   final String title;
   final String? subtitle;
@@ -1340,7 +1340,7 @@ class _LureStripState extends State<LureStrip>
                 ),
                 child: const Center(
                   child: Text(
-                    '🔥',
+                    'ðŸ”¥',
                     style: TextStyle(
                       fontSize: 16,
                     ),
@@ -1405,7 +1405,7 @@ class _LureStripState extends State<LureStrip>
   }
 }
 
-// Reveal: أنيميشن دخول
+// Reveal: Ø£Ù†ÙŠÙ…ÙŠØ´Ù† Ø¯Ø®ÙˆÙ„
 class Reveal extends StatelessWidget {
   final Animation<double> parent;
   final double begin;

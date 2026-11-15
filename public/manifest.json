@@ -1,10 +1,10 @@
 {
-    "name": "DARK V4",
-    "short_name": "DARK V4",
+    "name": "DARK V5",
+    "short_name": "DARK V5",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#080C06",
-    "theme_color": "#3A5020",
+    "background_color": "#0A0507",
+    "theme_color": "#8B1A3A",
     "description": "DARK V4 - THE BEST DARK",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
@@ -33,3 +33,4 @@
         }
     ]
 }
+

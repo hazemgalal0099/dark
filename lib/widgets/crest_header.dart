@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'noir_theme.dart';
 
 // ==========================================
-// CrestHeader — بنر DARK V4 الفاخر
+// CrestHeader â€” Ø¨Ù†Ø± DARK V5 Ø§Ù„ÙØ§Ø®Ø±
 // ==========================================
 class CrestHeader extends StatelessWidget {
   final double ringSize;
@@ -29,7 +29,7 @@ class CrestHeader extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // 1. حاوية البنر الصوري مع إطار زيتي فاخر
+                // 1. Ø­Ø§ÙˆÙŠØ© Ø§Ù„Ø¨Ù†Ø± Ø§Ù„ØµÙˆØ±ÙŠ Ù…Ø¹ Ø¥Ø·Ø§Ø± Ø²ÙŠØªÙŠ ÙØ§Ø®Ø±
                 Positioned(
                   top: 0,
                   left: 0,
@@ -68,9 +68,9 @@ class CrestHeader extends StatelessWidget {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          // صورة البنر
+                          // ØµÙˆØ±Ø© Ø§Ù„Ø¨Ù†Ø±
                           Image.asset(
-                            'assets/banner_dark_v4.jpg',
+                            'assets/banner_dark_v5.jpg',
                             fit: BoxFit.cover,
                             alignment: Alignment.center,
                             errorBuilder: (_, _, _) => Container(
@@ -79,16 +79,16 @@ class CrestHeader extends StatelessWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Color(0xFF080C06),
-                                    Color(0xFF1A2410),
-                                    Color(0xFF2A3A10),
+                                    Color(0xFF0A0507),
+                                    Color(0xFF220D18),
+                                    Color(0xFF4A0A1E),
                                   ],
                                 ),
                               ),
                             ),
                           ),
 
-                          // طبقة تظليل زيتية متدرجة
+                          // Ø·Ø¨Ù‚Ø© ØªØ¸Ù„ÙŠÙ„ Ø²ÙŠØªÙŠØ© Ù…ØªØ¯Ø±Ø¬Ø©
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -96,7 +96,7 @@ class CrestHeader extends StatelessWidget {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.black.withValues(alpha: 0.45),
-                                  const Color(0xFF080C06).withValues(alpha: 0.15),
+                                  const Color(0xFF0A0507).withValues(alpha: 0.15),
                                   Colors.black.withValues(alpha: 0.80),
                                 ],
                                 stops: const [0.0, 0.45, 1.0],
@@ -104,7 +104,7 @@ class CrestHeader extends StatelessWidget {
                             ),
                           ),
 
-                          // تعتيم جانبي
+                          // ØªØ¹ØªÙŠÙ… Ø¬Ø§Ù†Ø¨ÙŠ
                           Container(
                             decoration: BoxDecoration(
                               gradient: RadialGradient(
@@ -119,7 +119,7 @@ class CrestHeader extends StatelessWidget {
                             ),
                           ),
 
-                          // شارة DARK V4
+                          // Ø´Ø§Ø±Ø© DARK V5
                           SafeArea(
                             bottom: false,
                             child: Padding(
@@ -130,7 +130,7 @@ class CrestHeader extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  // شارة DARK V4
+                                  // Ø´Ø§Ø±Ø© DARK V5
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
@@ -160,7 +160,7 @@ class CrestHeader extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 5),
                                         Text(
-                                          'DARK V4',
+                                          'DARK V5',
                                           style: latin(
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w800,
@@ -181,7 +181,7 @@ class CrestHeader extends StatelessWidget {
                   ),
                 ),
 
-                // 2. خط نور متدرج زيتي أسفل حافة البنر
+                // 2. Ø®Ø· Ù†ÙˆØ± Ù…ØªØ¯Ø±Ø¬ Ø²ÙŠØªÙŠ Ø£Ø³ÙÙ„ Ø­Ø§ÙØ© Ø§Ù„Ø¨Ù†Ø±
                 Positioned(
                   top: bannerHeight - 1,
                   left: 20,
@@ -203,7 +203,7 @@ class CrestHeader extends StatelessWidget {
                   ),
                 ),
 
-                // 3. LogoRing في المنتصف
+                // 3. LogoRing ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ
                 Positioned(
                   top: bannerHeight - halfRing,
                   left: 0,
@@ -216,7 +216,7 @@ class CrestHeader extends StatelessWidget {
                         clipBehavior: Clip.none,
                         alignment: Alignment.center,
                         children: [
-                          // قاعدة دائرية
+                          // Ù‚Ø§Ø¹Ø¯Ø© Ø¯Ø§Ø¦Ø±ÙŠØ©
                           Container(
                             width: ringSize + 12,
                             height: ringSize + 12,

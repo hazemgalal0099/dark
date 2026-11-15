@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,13 +34,13 @@ class _LoginScreenState extends State<LoginScreen>
       'name': 'المنصة الأولى',
       'asset': 'assets/platform_1.jpg',
       'badge': 'PRO 1',
-      'bgColor': Color(0xFF0A1206),
+      'bgColor': Color(0xFF0A0507),
     },
     {
       'name': 'المنصة الثانية',
       'asset': 'assets/platform_2.jpg',
       'badge': 'PRO 2',
-      'bgColor': Color(0xFF111A08),
+      'bgColor': Color(0xFF160810),
     },
   ];
 
@@ -101,12 +101,12 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     if (code.isEmpty) {
-      setState(() => _errorMessage = 'يرجى إدخال كود التفعيل');
+      setState(() => _errorMessage = 'يرجى إدخال الكود');
       return;
     }
 
     if (code.toLowerCase() != 'dark58') {
-      setState(() => _errorMessage = 'كود التفعيل غير صحيح');
+      setState(() => _errorMessage = 'الكود غير صحيح');
       return;
     }
 
@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      'جلسة مشفرة — DARK V4 🔥',
+                                      'جلسة مشفرة — DARK V5 🔥',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: arabic(
@@ -272,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'DARK V4',
+                'DARK V5',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: latin(
@@ -329,17 +329,17 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 3. كود التفعيل
+          // 3. الكود
           RailStep(
             stepNumber: 3,
             isCompleted: _codeController.text.trim().isNotEmpty,
             isLast: true,
-            title: 'كود التفعيل',
+            title: 'الكود',
             content: _buildInputField(
               controller: _codeController,
               focusNode: _codeFocusNode,
               icon: Icons.vpn_key_outlined,
-              label: 'كود التفعيل',
+              label: 'الكود',
               hint: 'dark58',
               keyboardType: TextInputType.text,
             ),
@@ -380,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen>
 
           // زر الدخول الناري الفاخر
           WineButton(
-            text: _isSubmitting ? 'جاري التحقق...' : 'بدء تشغيل DARK V4',
+            text: _isSubmitting ? 'جاري التحقق...' : 'بدء تشغيل DARK V5',
             icon: Icons.bolt_rounded,
             onPressed: _isSubmitting ? null : _handleLogin,
           ),

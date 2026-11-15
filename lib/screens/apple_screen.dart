@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -210,7 +210,7 @@ class _DarkApplePageState extends State<DarkApplePage>
                     child: Opacity(
                       opacity: 0.045,
                       child: Text(
-                        'DARK V4',
+                        'DARK V5',
                         style: brand(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
@@ -417,7 +417,7 @@ class _DarkApplePageState extends State<DarkApplePage>
                 decoration: BoxDecoration(
                   color: current
                       ? kSteelHi
-                      : (revealed ? const Color(0xFF0A1A06) : kGraphite),
+                      : (revealed ? const Color(0xFF0A0507) : kGraphite),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: current
@@ -683,8 +683,8 @@ class BlazePainter extends CustomPainter {
   final double t; // 0.0 -> 1.0
 
   static const Color _core = Color(0xFFFFFFFF);
-  static const Color _flame = Color(0xFF7A9A3A); // Olive green
-  static const Color _ember = Color(0xFF3A5020); // Deep olive
+  static const Color _flame = Color(0xFF8B1A3A); // Olive green
+  static const Color _ember = Color(0xFF4A0A1E); // Deep olive
 
   const BlazePainter({required this.t});
 

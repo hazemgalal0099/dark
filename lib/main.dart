@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'screens/apple_screen.dart';
 import 'screens/login_screen.dart';
 import 'widgets/network_wrapper.dart';
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DARK V4',
+      title: 'DARK V5',
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar'),
       theme: ThemeData(
